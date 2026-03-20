@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GT 통합 업무 허브</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --container-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --btn-bg: #ffffff;
+            --btn-border: #e2e8f0;
+            --accent: #3b82f6;
+            --gt-icon-bg: #1e293b;
+            --gt-icon-text: #ffffff;
+            --delivery-accent: #10b981;
+            --qc-accent: #f59e0b;
+            --danger-color: #ef4444;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+            --shadow-hover: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+        body.dark-mode {
+            --bg-color: #0f172a; --container-bg: #1e293b; --text-main: #f8fafc;
+            --text-sub: #94a3b8; --btn-bg: #334155; --btn-border: #475569;
+            --accent: #60a5fa; --gt-icon-bg: #60a5fa; --gt-icon-text: #0f172a; --danger-color: #f87171;
+        }
+        * { box-sizing: border-box; transition: background-color 0.25s, color 0.25s, transform 0.2s; }
+        body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .dashboard { width: 100%; max-width: 950px; padding: 50px 30px; background: var(--container-bg); border-radius: 32px; box-shadow: var(--shadow); text-align: center; position: relative; }
+        .theme-toggle { position: absolute; top: 30px; right: 30px; background: var(--btn-bg); border: 1px solid var(--btn-border); padding: 8px 16px; border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 700; color: var(--text-main); box-shadow: var(--shadow); }
+        h2 { font-size: 28px; margin-bottom: 40px; font-weight: 800; letter-spacing: -1px; color: var(--accent); }
+        .search-area { margin-bottom: 50px; }
+        .search-area input { width: 100%; max-width: 550px; padding: 18px 30px; border: 2px solid var(--btn-border); border-radius: 20px; background: var(--btn-bg); color: var(--text-main); outline: none; font-size: 17px; box-shadow: var(--shadow); }
+        .search-area input:focus { border-color: var(--accent); transform: translateY(-2px); }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        @media (max-width: 850px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+        .btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 25px 15px; background: var(--btn-bg); border: 1px solid var(--btn-border); border-radius: 24px; text-decoration: none; color: var(--text-main); font-weight: 700; cursor: pointer; min-height: 130px; box-shadow: var(--shadow); }
+        .btn:hover { transform: translateY(-8px); box-shadow: var(--shadow-hover); border-color: var(--accent); color: var(--accent); }
+        .btn.qc-btn:hover { border-color: var(--qc-accent); color: var(--qc-accent); }
+        .btn.delivery-btn:hover { border-color: var(--delivery-accent); color: var(--delivery-accent); }
+        .icon-emoji { font-size: 32px; margin-bottom: 12px; }
+        .icon-gt { width: 36px; height: 36px; border-radius: 50%; background: var(--gt-icon-bg); color: var(--gt-icon-text); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; margin-bottom: 12px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+        .modal-content { background: var(--container-bg); padding: 40px; border-radius: 32px; width: 100%; max-width: 580px; text-align: center; border: 1px solid var(--btn-border); box-shadow: var(--shadow-hover); position: relative; }
+        .sub-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .sub-btn-group.triple { grid-template-columns: repeat(3, 1fr); }
+        .sub-btn { padding: 18px; background: var(--btn-bg); border-radius: 16px; text-decoration: none; color: var(--text-main); font-weight: 800; border: 1px solid var(--btn-border); font-size: 14px; box-shadow: var(--shadow); display: block; }
+        .sub-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+        #searchResult { max-height: 300px; overflow-y: auto; margin-top: 20px; border-radius: 16px; border: 1px solid var(--btn-border); }
+        .result-table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: left; }
+        .result-table th { padding: 14px; background: var(--btn-bg); color: var(--text-sub); border-bottom: 2px solid var(--btn-border); position: sticky; top: 0; }
+        .result-table td { padding: 16px 14px; border-bottom: 1px solid var(--btn-border); }
+        .location-tag { background: #eff6ff; color: var(--accent); padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 12px; border: 1px solid #dbeafe; cursor: pointer; display: inline-block; }
+        .location-tag:hover { background: var(--accent); color: white; }
+        body.dark-mode .location-tag { background: #1e293b; color: var(--accent); border-color: #334155; }
+        body.dark-mode .location-tag:hover { background: var(--accent); color: white; }
+        .out-of-stock { color: var(--danger-color); font-weight: 900; }
+        .close-btn { margin-top: 30px; display: inline-block; color: var(--text-sub); cursor: pointer; text-decoration: underline; font-size: 14px; font-weight: 600; }
+        .loader { border: 4px solid var(--btn-border); border-top: 4px solid var(--accent); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #toast { visibility: hidden; min-width: 250px; background-color: var(--text-main); color: var(--bg-color); text-align: center; border-radius: 8px; padding: 12px; position: fixed; z-index: 2000; bottom: 30px; left: 50%; transform: translateX(-50%); font-weight: bold; box-shadow: var(--shadow-hover); opacity: 0; transition: opacity 0.3s, visibility 0.3s; }
+        #toast.show { visibility: visible; opacity: 1; }
+
+        /* QC 검색 */
+        .qc-search-wrap { margin-top: 24px; border-top: 1px solid var(--btn-border); padding-top: 24px; }
+        .qc-search-wrap label { display: block; font-size: 13px; font-weight: 700; color: var(--text-sub); margin-bottom: 10px; text-align: left; }
+        .qc-search-input-row { display: flex; gap: 10px; }
+        .qc-search-input-row input { flex: 1; padding: 14px 18px; border-radius: 14px; border: 1px solid var(--btn-border); background: var(--btn-bg); color: var(--text-main); outline: none; font-size: 14px; }
+        .qc-search-input-row input:focus { border-color: var(--qc-accent); }
+        #qcSearchResult { max-height: 240px; overflow-y: auto; overflow-x: hidden; margin-top: 14px; text-align: left; }
+        #qcSearchResult::-webkit-scrollbar { width: 6px; }
+        #qcSearchResult::-webkit-scrollbar-thumb { background: var(--btn-border); border-radius: 3px; }
+        .qc-result-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--btn-border); margin-bottom: 8px; text-decoration: none; color: var(--text-main); background: var(--btn-bg); transition: all 0.15s; min-width: 0; }
+        .qc-result-item:hover { border-color: var(--qc-accent); background: color-mix(in srgb, var(--qc-accent) 8%, var(--btn-bg)); transform: translateX(4px); }
+        .qc-result-category { font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 8px; white-space: nowrap; flex-shrink: 0; }
+        .qc-cat-거치대 { background: #ecfdf5; color: #059669; }
+        .qc-cat-레이싱 { background: #fef3c7; color: #d97706; }
+        .qc-cat-키보드 { background: #ede9fe; color: #7c3aed; }
+        body.dark-mode .qc-cat-거치대 { background: #064e3b; color: #6ee7b7; }
+        body.dark-mode .qc-cat-레이싱 { background: #78350f; color: #fcd34d; }
+        body.dark-mode .qc-cat-키보드 { background: #4c1d95; color: #c4b5fd; }
+        .qc-result-name { font-size: 14px; font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .qc-result-arrow { color: var(--text-sub); font-size: 14px; flex-shrink: 0; }
+        .qc-result-empty { text-align: center; padding: 24px; font-size: 13px; color: var(--text-sub); }
+        .qc-result-loading { text-align: center; padding: 20px; }
+        .qc-result-count { font-size: 12px; color: var(--text-sub); margin-bottom: 10px; }
+        .qc-highlight { background: color-mix(in srgb, var(--qc-accent) 25%, transparent); border-radius: 3px; padding: 0 2px; }
+    </style>
+</head>
+<body class="light-mode">
+<div class="dashboard">
+    <button class="theme-toggle" id="themeBtn">🌙 다크 모드</button>
+    <h2>자주 쓰는 메뉴 모음</h2>
+    <form action="https://www.google.com/search" method="GET" class="search-area" target="_blank">
+        <input type="text" name="q" placeholder="무엇을 도와드릴까요? (구글 검색)">
+    </form>
+    <div class="grid">
+        <a href="https://docs.google.com/spreadsheets/d/1L9yynlrhYSmm6XVQafMxsBVTa-I-6Y14fIrhZmwT73I/edit?gid=485381937" target="_blank" class="btn"><span class="icon-emoji">💻</span>호환성</a>
+        <div onclick="openModal('rmaModal')" class="btn"><span class="icon-emoji">📦</span>RMA</div>
+        <a href="https://support.gtgear.co.kr/list_new" target="_blank" class="btn"><span class="icon-emoji">🛠️</span>서포트</a>
+        <a href="https://blog.naver.com/gtgearcokr" target="_blank" class="btn"><div class="icon-gt">GT</div>지티블로그</a>
+        <div onclick="openModal('qcModal')" class="btn qc-btn"><span class="icon-emoji">🔍</span>상품 QC</div>
+        <a href="https://docs.google.com/spreadsheets/d/1NABcSPNxACYHd8GuB9bUgWuizuD4wfSdnWQzBGqTtRE/edit?gid=0" target="_blank" class="btn"><span class="icon-emoji">💳</span>A/S 비용</a>
+        <div onclick="openModal('partModal')" class="btn"><span class="icon-emoji">🔧</span>AS 부품</div>
+        <div onclick="openModal('deliveryModal')" class="btn delivery-btn"><span class="icon-emoji">🚚</span>송장 조회</div>
+    </div>
+</div>
+
+<div id="rmaModal" class="modal"><div class="modal-content">
+    <h3 style="margin-top:0">📦 RMA 브랜드 선택</h3>
+    <div class="sub-btn-group">
+        <a href="https://docs.google.com/spreadsheets/d/1qxqhxPrX1z2Ij9p5itVZEcQTdgE7AUHAv8i_bi12KbA/edit?gid=0" target="_blank" class="sub-btn">🏎️ FANATEC</a>
+        <a href="https://docs.google.com/spreadsheets/d/1ZQRr71-tWazNPZgddzMWRKTAA-t-vhafJ1eAohgZlhc/edit?gid=245772397" target="_blank" class="sub-btn">🤖 AIPER</a>
+    </div>
+    <span class="close-btn" onclick="closeModal('rmaModal')">닫기 (ESC)</span>
+</div></div>
+
+<div id="partModal" class="modal"><div class="modal-content">
+    <h3 style="margin-top:0">🔧 AS 부품 관리</h3>
+    <div class="sub-btn-group">
+        <a href="https://docs.google.com/spreadsheets/d/1jtgtkd_gV9B2iiG8PwqYMEJe5npuSsRyKCEiJ9dWOro/edit?gid=0" target="_blank" class="sub-btn">🏎️ FANATEC</a>
+        <a href="https://docs.google.com/spreadsheets/d/1jtgtkd_gV9B2iiG8PwqYMEJe5npuSsRyKCEiJ9dWOro/edit?gid=0" target="_blank" class="sub-btn">🏁 MOZA</a>
+    </div>
+    <hr style="border:0; border-top:1px solid var(--btn-border); margin: 25px 0;">
+    <div style="display:flex; gap:10px;">
+        <input type="text" id="partInput" placeholder="부품명 또는 위치 검색..." onkeydown="if(event.key==='Enter')searchParts()" style="flex:1; padding:15px; border-radius:14px; border:1px solid var(--btn-border); background:var(--btn-bg); color:var(--text-main); outline:none;">
+        <button onclick="searchParts()" style="padding:0 25px; border-radius:14px; border:none; background:var(--accent); color:white; font-weight:800; cursor:pointer;">조회</button>
+    </div>
+    <div id="searchResult"><p style="font-size:13px; padding:30px; color:var(--text-sub);">검색어를 입력하고 조회를 눌러주세요.</p></div>
+    <span class="close-btn" onclick="closeModal('partModal')">닫기 (ESC)</span>
+</div></div>
+
+<div id="deliveryModal" class="modal"><div class="modal-content">
+    <h3 style="margin-top:0; color: var(--delivery-accent);">🚚 택배사 선택</h3>
+    <div class="sub-btn-group">
+        <a href="https://www.cjlogistics.com/ko/tool/parcel/tracking" target="_blank" class="sub-btn">CJ 대한통운</a>
+        <a href="https://www.lotteglogis.com/home/reservation/tracking/index" target="_blank" class="sub-btn">롯데택배</a>
+        <a href="https://www.ilogen.com/web/personal/tkSearch" target="_blank" class="sub-btn">로젠택배</a>
+        <a href="https://kdexp.com/service/delivery/search_no.do" target="_blank" class="sub-btn">경동택배</a>
+    </div>
+    <span class="close-btn" onclick="closeModal('deliveryModal')">닫기 (ESC)</span>
+</div></div>
+
+<div id="qcModal" class="modal"><div class="modal-content">
+    <h3 style="margin-top:0; color: var(--qc-accent);">🔍 상품 QC 카테고리</h3>
+    <div class="sub-btn-group triple">
+        <a href="https://docs.google.com/spreadsheets/d/1pYkEbDMuPztuh6XGPc0s5kb2Mx3zjCFE0YdJenwRVqo/edit?gid=1211491111" target="_blank" class="sub-btn">🪑 거치대</a>
+        <a href="https://docs.google.com/spreadsheets/d/1k4T4oMIZhidmMsz-FMIQNkBKv1Kh1H0par0ONIVn27w/edit?gid=280884923" target="_blank" class="sub-btn">🏎️ 레이싱</a>
+        <a href="https://docs.google.com/spreadsheets/d/1WDzveV-SDsdMI-mvz1Hmw9yTOavwRj2uHngcVaTB5U4/edit?gid=1773391594" target="_blank" class="sub-btn">⌨️ 키보드</a>
+    </div>
+    <div class="qc-search-wrap">
+        <label>📎 시트(상품)명으로 빠르게 이동</label>
+        <div class="qc-search-input-row">
+            <input type="text" id="qcSearchInput" placeholder="시트명 검색 (예: CSL, V3, 키캡...)" oninput="filterQcSheets()">
+        </div>
+        <div id="qcSearchResult">
+            <p class="qc-result-empty">검색어를 입력하면 시트 목록에서 찾아드립니다.</p>
+        </div>
+    </div>
+    <span class="close-btn" onclick="closeModal('qcModal')">닫기 (ESC)</span>
+</div></div>
+
+<div id="toast">✅ 위치가 복사되었습니다!</div>
+
+<script>
+const GOOGLE_SCRIPT_URL="https://script.google.com/a/macros/tbnws.com/s/AKfycbxC1flmNraZRTsgakCowbjuBF3FgBDIbKfDn0emtUez62nqyrXBgpVb3RarfmvqrXE8ug/exec";
+const QC_SHEET_SCRIPT_URL="https://script.google.com/macros/s/AKfycbyUp355_3qBCH0HW2N88CxqDNNEBo_7GrW_T5jNbvqbAf54DIW7VKnQxVthv71m7td1kQ/exec";
+let qcSheetData=[],qcDataLoaded=false,qcDataLoading=false;
+
+const themeBtn=document.getElementById('themeBtn');
+themeBtn.addEventListener('click',()=>{const d=document.body.classList.toggle('dark-mode');themeBtn.innerText=d?"☀️ 라이트 모드":"🌙 다크 모드";localStorage.setItem('theme',d?'dark':'light');});
+window.addEventListener('DOMContentLoaded',()=>{if(localStorage.getItem('theme')==='dark'){document.body.classList.add('dark-mode');themeBtn.innerText="☀️ 라이트 모드";}});
+
+function openModal(id){document.getElementById(id).style.display='flex';if(id==='partModal')setTimeout(()=>document.getElementById('partInput').focus(),100);if(id==='qcModal'){setTimeout(()=>document.getElementById('qcSearchInput').focus(),100);if(!qcDataLoaded&&!qcDataLoading)loadQcSheetData();}}
+function closeModal(id){document.getElementById(id).style.display='none';if(id==='partModal'){document.getElementById('partInput').value='';document.getElementById('searchResult').innerHTML='<p style="font-size:13px;padding:30px;color:var(--text-sub);">검색어를 입력하고 조회를 눌러주세요.</p>';}if(id==='qcModal'){document.getElementById('qcSearchInput').value='';document.getElementById('qcSearchResult').innerHTML='<p class="qc-result-empty">검색어를 입력하면 시트 목록에서 찾아드립니다.</p>';}}
+window.onclick=(e)=>{if(e.target.classList.contains('modal'))closeModal(e.target.id);};
+window.addEventListener('keydown',(e)=>{if(e.key==='Escape')document.querySelectorAll('.modal').forEach(m=>{if(m.style.display==='flex')closeModal(m.id);});});
+function copyText(t){navigator.clipboard.writeText(t).then(()=>{const s=document.getElementById("toast");s.className="show";setTimeout(()=>{s.className=s.className.replace("show","");},2500);});}
+
+async function searchParts(){const q=document.getElementById('partInput').value.trim();const r=document.getElementById('searchResult');if(!q){alert("검색어를 입력해 주세요.");return;}r.innerHTML="<div class='loader'></div><p style='text-align:center;padding-bottom:30px;font-size:13px;color:var(--text-sub);'>데이터베이스 조회 중...</p>";const o=document.getElementById('jsonpScript');if(o)o.remove();const cb='cb_'+Date.now();window[cb]=function(data){document.getElementById('jsonpScript')?.remove();delete window[cb];if(!data||data.length===0){r.innerHTML="<p style='text-align:center;padding:30px;'>검색 결과가 없습니다.</p>";}else{let h='<table class="result-table"><thead><tr><th>브랜드</th><th>부품명</th><th>위치 (클릭하여 복사)</th><th>재고</th></tr></thead><tbody>';data.forEach(i=>{const l=i["로케이션(위치)"]||i["로케이션"]||"-";const s=String(i["재고현황"]||i["재고"]||"0");const out=s==="0"||s==="0개"||s.includes("품절")||s.includes("없음");h+=`<tr><td>${i["브랜드"]||"-"}</td><td><b>${i["부품명"]||"-"}</b></td><td><span class="location-tag" title="클릭하여 복사" onclick="copyText('${l}')">${l}</span></td><td class="${out?"out-of-stock":""}">${s}</td></tr>`;});h+='</tbody></table>';r.innerHTML=h;}};const s=document.createElement('script');s.id='jsonpScript';s.src=`${GOOGLE_SCRIPT_URL}?q=${encodeURIComponent(q)}&callback=${cb}`;s.onerror=()=>{r.innerHTML="<p style='text-align:center;color:red;padding:30px;'>서버 연결 실패.</p>";delete window[cb];};document.body.appendChild(s);}
+
+function loadQcSheetData(){qcDataLoading=true;const r=document.getElementById('qcSearchResult');r.innerHTML='<div class="qc-result-loading"><div class="loader"></div><p style="font-size:13px;color:var(--text-sub);">시트 목록 불러오는 중...</p></div>';const o=document.getElementById('qcJsonpScript');if(o)o.remove();const cb='qcCb_'+Date.now();window[cb]=function(data){document.getElementById('qcJsonpScript')?.remove();delete window[cb];qcDataLoading=false;if(data&&Array.isArray(data)&&data.length>0){qcSheetData=data;qcDataLoaded=true;r.innerHTML='<p class="qc-result-empty">시트 '+data.length+'개 로드 완료! 검색어를 입력해 주세요.</p>';}else{r.innerHTML='<p class="qc-result-empty" style="color:var(--danger-color);">시트 목록을 불러올 수 없습니다.</p>';}};const s=document.createElement('script');s.id='qcJsonpScript';s.src=`${QC_SHEET_SCRIPT_URL}?callback=${cb}`;s.onerror=()=>{r.innerHTML='<p class="qc-result-empty" style="color:var(--danger-color);">서버 연결 실패.</p>';qcDataLoading=false;delete window[cb];};document.body.appendChild(s);}
+
+function filterQcSheets(){const q=document.getElementById('qcSearchInput').value.trim().toLowerCase();const r=document.getElementById('qcSearchResult');if(!qcDataLoaded){r.innerHTML='<p class="qc-result-empty">시트 목록 로딩 중입니다. 잠시 기다려 주세요...</p>';return;}if(!q){r.innerHTML='<p class="qc-result-empty">검색어를 입력하면 시트 목록에서 찾아드립니다.</p>';return;}const f=qcSheetData.filter(i=>i.sheetName.toLowerCase().includes(q));if(f.length===0){r.innerHTML='<p class="qc-result-empty">"'+escapeHtml(q)+'" 에 해당하는 시트가 없습니다.</p>';return;}let h='<div class="qc-result-count">'+f.length+'개 시트 발견</div>';f.forEach(i=>{const u='https://docs.google.com/spreadsheets/d/'+i.spreadsheetId+'/edit#gid='+i.gid;const hl=highlightMatch(escapeHtml(i.sheetName),q);const em=i.category==='거치대'?'🪑':i.category==='레이싱'?'🏎️':'⌨️';h+=`<a href="${u}" target="_blank" class="qc-result-item"><span class="qc-result-category qc-cat-${i.category}">${em} ${i.category}</span><span class="qc-result-name">${hl}</span><span class="qc-result-arrow">→</span></a>`;});r.innerHTML=h;}
+function escapeHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function highlightMatch(t,q){if(!q)return t;const re=new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');return t.replace(re,'<span class="qc-highlight">$1</span>');}
+</script>
+</body>
+</html>
