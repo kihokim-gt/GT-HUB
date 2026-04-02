@@ -17,6 +17,7 @@
             --gt-icon-text: #ffffff;
             --delivery-accent: #10b981;
             --qc-accent: #f59e0b;
+            --manual-accent: #8b5cf6;
             --danger-color: #ef4444;
             --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
             --shadow-hover: 0 20px 25px -5px rgb(0 0 0 / 0.1);
@@ -24,7 +25,8 @@
         body.dark-mode {
             --bg-color: #0f172a; --container-bg: #1e293b; --text-main: #f8fafc;
             --text-sub: #94a3b8; --btn-bg: #334155; --btn-border: #475569;
-            --accent: #60a5fa; --gt-icon-bg: #60a5fa; --gt-icon-text: #0f172a; --danger-color: #f87171;
+            --accent: #60a5fa; --gt-icon-bg: #60a5fa; --gt-icon-text: #0f172a;
+            --danger-color: #f87171; --manual-accent: #a78bfa;
         }
         * { box-sizing: border-box; transition: background-color 0.25s, color 0.25s, transform 0.2s; }
         body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
@@ -34,49 +36,40 @@
         .search-area { margin-bottom: 50px; }
         .search-area input { width: 100%; max-width: 550px; padding: 18px 30px; border: 2px solid var(--btn-border); border-radius: 20px; background: var(--btn-bg); color: var(--text-main); outline: none; font-size: 17px; box-shadow: var(--shadow); }
         .search-area input:focus { border-color: var(--accent); transform: translateY(-2px); }
-        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-        @media (max-width: 850px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+        /* ★ 3x3 그리드 */
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        @media (max-width: 650px) { .grid { grid-template-columns: repeat(2, 1fr); } }
         .btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 25px 15px; background: var(--btn-bg); border: 1px solid var(--btn-border); border-radius: 24px; text-decoration: none; color: var(--text-main); font-weight: 700; cursor: pointer; min-height: 130px; box-shadow: var(--shadow); position: relative; }
         .btn:hover { transform: translateY(-8px); box-shadow: var(--shadow-hover); border-color: var(--accent); color: var(--accent); }
         .btn.qc-btn:hover { border-color: var(--qc-accent); color: var(--qc-accent); }
         .btn.delivery-btn:hover { border-color: var(--delivery-accent); color: var(--delivery-accent); }
+        .btn.manual-btn:hover { border-color: var(--manual-accent); color: var(--manual-accent); }
         .icon-emoji { font-size: 32px; margin-bottom: 12px; }
         .icon-gt { width: 36px; height: 36px; border-radius: 50%; background: var(--gt-icon-bg); color: var(--gt-icon-text); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; margin-bottom: 12px; }
-
-        /* 프리로드 상태 뱃지 */
-        .preload-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #d1d5db;
-            transition: background 0.4s;
-        }
-        .preload-badge.loading {
-            background: var(--qc-accent);
-            animation: pulse-badge 1.2s ease-in-out infinite;
-        }
-        .preload-badge.ready {
-            background: #10b981;
-            animation: none;
-        }
-        .preload-badge.error {
-            background: var(--danger-color);
-            animation: none;
-        }
-        @keyframes pulse-badge {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.7); }
-        }
-
+        /* 프리로드 뱃지 */
+        .preload-badge { position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: #d1d5db; transition: background 0.4s; }
+        .preload-badge.loading { background: var(--qc-accent); animation: pulse-badge 1.2s ease-in-out infinite; }
+        .preload-badge.ready { background: #10b981; animation: none; }
+        .preload-badge.error { background: var(--danger-color); animation: none; }
+        @keyframes pulse-badge { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.7); } }
+        /* 모달 공통 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
         .modal-content { background: var(--container-bg); padding: 40px; border-radius: 32px; width: 100%; max-width: 580px; text-align: center; border: 1px solid var(--btn-border); box-shadow: var(--shadow-hover); position: relative; }
         .sub-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
         .sub-btn-group.triple { grid-template-columns: repeat(3, 1fr); }
         .sub-btn { padding: 18px; background: var(--btn-bg); border-radius: 16px; text-decoration: none; color: var(--text-main); font-weight: 800; border: 1px solid var(--btn-border); font-size: 14px; box-shadow: var(--shadow); display: block; }
         .sub-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+        /* ★ 메뉴얼 모달 전용 */
+        .manual-list { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+        .manual-sub-btn { padding: 18px 20px; background: var(--btn-bg); border-radius: 16px; text-decoration: none; color: var(--text-main); font-weight: 800; border: 1px solid var(--btn-border); font-size: 15px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 14px; transition: all 0.2s; }
+        .manual-sub-btn:hover { background: var(--manual-accent); color: white; border-color: var(--manual-accent); transform: translateX(5px); box-shadow: var(--shadow-hover); }
+        .manual-sub-btn .brand-icon { width: 38px; height: 38px; border-radius: 10px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; transition: background 0.2s; }
+        body.dark-mode .manual-sub-btn .brand-icon { background: #475569; }
+        .manual-sub-btn:hover .brand-icon { background: rgba(255,255,255,0.2); }
+        .manual-sub-btn .brand-name { flex: 1; text-align: left; letter-spacing: 0.03em; }
+        .manual-sub-btn .brand-arrow { color: var(--text-sub); font-size: 18px; flex-shrink: 0; transition: color 0.2s, transform 0.2s; }
+        .manual-sub-btn:hover .brand-arrow { color: white; transform: translateX(3px); }
+        /* 부품/QC 공통 */
         #searchResult { max-height: 300px; overflow-y: auto; margin-top: 20px; border-radius: 16px; border: 1px solid var(--btn-border); }
         .result-table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: left; }
         .result-table th { padding: 14px; background: var(--btn-bg); color: var(--text-sub); border-bottom: 2px solid var(--btn-border); position: sticky; top: 0; }
@@ -91,8 +84,6 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         #toast { visibility: hidden; min-width: 250px; background-color: var(--text-main); color: var(--bg-color); text-align: center; border-radius: 8px; padding: 12px; position: fixed; z-index: 2000; bottom: 30px; left: 50%; transform: translateX(-50%); font-weight: bold; box-shadow: var(--shadow-hover); opacity: 0; transition: opacity 0.3s, visibility 0.3s; }
         #toast.show { visibility: visible; opacity: 1; }
-
-        /* QC 검색 */
         .qc-search-wrap { margin-top: 24px; border-top: 1px solid var(--btn-border); padding-top: 24px; }
         .qc-search-wrap label { display: block; font-size: 13px; font-weight: 700; color: var(--text-sub); margin-bottom: 10px; text-align: left; }
         .qc-search-input-row { display: flex; gap: 10px; }
@@ -125,12 +116,13 @@
     <form action="https://www.google.com/search" method="GET" class="search-area" target="_blank">
         <input type="text" name="q" placeholder="무엇을 도와드릴까요? (구글 검색)">
     </form>
+
+    <!-- ★ 3x3 그리드 -->
     <div class="grid">
         <a href="https://docs.google.com/spreadsheets/d/1L9yynlrhYSmm6XVQafMxsBVTa-I-6Y14fIrhZmwT73I/edit?gid=485381937" target="_blank" class="btn"><span class="icon-emoji">💻</span>호환성</a>
         <div onclick="openModal('rmaModal')" class="btn"><span class="icon-emoji">📦</span>RMA</div>
         <a href="https://support.gtgear.co.kr/list_new" target="_blank" class="btn"><span class="icon-emoji">🛠️</span>서포트</a>
         <a href="https://blog.naver.com/gtgearcokr" target="_blank" class="btn"><div class="icon-gt">GT</div>지티블로그</a>
-        <!-- QC 버튼: 프리로드 상태 뱃지 포함 -->
         <div onclick="openModal('qcModal')" class="btn qc-btn">
             <span class="preload-badge loading" id="qcPreloadBadge" title="시트 데이터 로딩 중..."></span>
             <span class="icon-emoji">🔍</span>상품 QC
@@ -138,9 +130,12 @@
         <a href="https://docs.google.com/spreadsheets/d/1NABcSPNxACYHd8GuB9bUgWuizuD4wfSdnWQzBGqTtRE/edit?gid=0" target="_blank" class="btn"><span class="icon-emoji">💳</span>A/S 비용</a>
         <div onclick="openModal('partModal')" class="btn"><span class="icon-emoji">🔧</span>AS 부품</div>
         <div onclick="openModal('deliveryModal')" class="btn delivery-btn"><span class="icon-emoji">🚚</span>송장 조회</div>
+        <!-- ★ 메뉴얼 버튼 -->
+        <div onclick="openModal('manualModal')" class="btn manual-btn"><span class="icon-emoji">📖</span>메뉴얼</div>
     </div>
 </div>
 
+<!-- RMA 모달 -->
 <div id="rmaModal" class="modal"><div class="modal-content">
     <h3 style="margin-top:0">📦 RMA 브랜드 선택</h3>
     <div class="sub-btn-group">
@@ -150,6 +145,7 @@
     <span class="close-btn" onclick="closeModal('rmaModal')">닫기 (ESC)</span>
 </div></div>
 
+<!-- AS 부품 모달 -->
 <div id="partModal" class="modal"><div class="modal-content">
     <h3 style="margin-top:0">🔧 AS 부품 관리</h3>
     <div class="sub-btn-group">
@@ -165,6 +161,7 @@
     <span class="close-btn" onclick="closeModal('partModal')">닫기 (ESC)</span>
 </div></div>
 
+<!-- 송장 조회 모달 -->
 <div id="deliveryModal" class="modal"><div class="modal-content">
     <h3 style="margin-top:0; color: var(--delivery-accent);">🚚 택배사 선택</h3>
     <div class="sub-btn-group">
@@ -176,6 +173,7 @@
     <span class="close-btn" onclick="closeModal('deliveryModal')">닫기 (ESC)</span>
 </div></div>
 
+<!-- QC 모달 -->
 <div id="qcModal" class="modal"><div class="modal-content">
     <h3 style="margin-top:0; color: var(--qc-accent);">🔍 상품 QC 카테고리</h3>
     <div class="sub-btn-group triple">
@@ -195,15 +193,47 @@
     <span class="close-btn" onclick="closeModal('qcModal')">닫기 (ESC)</span>
 </div></div>
 
+<!-- ★ 메뉴얼 모달 -->
+<div id="manualModal" class="modal"><div class="modal-content">
+    <h3 style="margin-top:0; color: var(--manual-accent);">📖 브랜드 메뉴얼</h3>
+    <p style="font-size:13px; color:var(--text-sub); margin: 0 0 4px 0;">브랜드를 선택하면 Google Drive 폴더로 이동합니다.</p>
+    <div class="manual-list">
+        <a href="https://drive.google.com/drive/folders/1cKo2WSMqhB1T9CoyGWkA4hBPmbAi9Ymc?usp=drive_link" target="_blank" class="manual-sub-btn">
+            <span class="brand-icon">🤖</span>
+            <span class="brand-name">AIPER</span>
+            <span class="brand-arrow">→</span>
+        </a>
+        <a href="https://drive.google.com/drive/folders/1nIQiQXJonaUzn46m3rOKSFz2kvB-Y5FF?usp=drive_link" target="_blank" class="manual-sub-btn">
+            <span class="brand-icon">💡</span>
+            <span class="brand-name">LUMI</span>
+            <span class="brand-arrow">→</span>
+        </a>
+        <a href="https://drive.google.com/drive/folders/1TvplLJLeC7jGcJGOoyi--TL0Qtpqn0KX?usp=drive_link" target="_blank" class="manual-sub-btn">
+            <span class="brand-icon">🪑</span>
+            <span class="brand-name">PLAYSEAT</span>
+            <span class="brand-arrow">→</span>
+        </a>
+        <a href="https://drive.google.com/drive/folders/1AbP5lakxBfX4SOTO5mEDkrbO_lxTy-SZ?usp=drive_link" target="_blank" class="manual-sub-btn">
+            <span class="brand-icon">🦅</span>
+            <span class="brand-name">STRIX</span>
+            <span class="brand-arrow">→</span>
+        </a>
+        <a href="https://drive.google.com/drive/folders/1urwFD-xXUI-oFuB4WNidv27lG85k04ea?usp=drive_link" target="_blank" class="manual-sub-btn">
+            <span class="brand-icon">🏎️</span>
+            <span class="brand-name">TRAKRACER</span>
+            <span class="brand-arrow">→</span>
+        </a>
+    </div>
+    <span class="close-btn" onclick="closeModal('manualModal')">닫기 (ESC)</span>
+</div></div>
+
 <div id="toast">✅ 위치가 복사되었습니다!</div>
 
 <script>
 const GOOGLE_SCRIPT_URL = "https://script.google.com/a/macros/tbnws.com/s/AKfycbxC1flmNraZRTsgakCowbjuBF3FgBDIbKfDn0emtUez62nqyrXBgpVb3RarfmvqrXE8ug/exec";
 const QC_SHEET_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyUp355_3qBCH0HW2N88CxqDNNEBo_7GrW_T5jNbvqbAf54DIW7VKnQxVthv71m7td1kQ/exec";
-
 let qcSheetData = [], qcDataLoaded = false, qcDataLoading = false;
 
-/* ── 테마 ── */
 const themeBtn = document.getElementById('themeBtn');
 themeBtn.addEventListener('click', () => {
     const d = document.body.classList.toggle('dark-mode');
@@ -215,21 +245,17 @@ window.addEventListener('DOMContentLoaded', () => {
         document.body.classList.add('dark-mode');
         themeBtn.innerText = "☀️ 라이트 모드";
     }
-    /* ★ 페이지 로드 즉시 백그라운드에서 QC 시트 데이터 프리로드 */
     loadQcSheetData();
 });
 
-/* ── 모달 ── */
 function openModal(id) {
     document.getElementById(id).style.display = 'flex';
     if (id === 'partModal') setTimeout(() => document.getElementById('partInput').focus(), 100);
     if (id === 'qcModal') {
         setTimeout(() => document.getElementById('qcSearchInput').focus(), 100);
-        /* 데이터가 아직 로딩 중이면 모달 안에 대기 메시지 표시 */
         if (qcDataLoading && !qcDataLoaded) {
             document.getElementById('qcSearchResult').innerHTML =
-                '<div class="qc-result-loading"><div class="loader"></div>' +
-                '<p style="font-size:13px;color:var(--text-sub);">시트 목록 불러오는 중...</p></div>';
+                '<div class="qc-result-loading"><div class="loader"></div><p style="font-size:13px;color:var(--text-sub);">시트 목록 불러오는 중...</p></div>';
         } else if (qcDataLoaded) {
             document.getElementById('qcSearchResult').innerHTML =
                 '<p class="qc-result-empty">시트 ' + qcSheetData.length + '개 준비됨! 검색어를 입력해 주세요.</p>';
@@ -259,7 +285,6 @@ function copyText(t) {
     });
 }
 
-/* ── AS 부품 검색 ── */
 async function searchParts() {
     const q = document.getElementById('partInput').value.trim();
     const r = document.getElementById('searchResult');
@@ -289,29 +314,19 @@ async function searchParts() {
     document.body.appendChild(s);
 }
 
-/* ── QC 시트 데이터 로드 (백그라운드 프리로드 지원) ── */
 function loadQcSheetData() {
     if (qcDataLoaded || qcDataLoading) return;
     qcDataLoading = true;
-
-    /* 프리로드 뱃지 상태: 로딩 중 */
     const badge = document.getElementById('qcPreloadBadge');
     if (badge) { badge.className = 'preload-badge loading'; badge.title = '시트 데이터 로딩 중...'; }
-
     const o = document.getElementById('qcJsonpScript'); if (o) o.remove();
     const cb = 'qcCb_' + Date.now();
     window[cb] = function (data) {
         document.getElementById('qcJsonpScript')?.remove(); delete window[cb];
         qcDataLoading = false;
-
         if (data && Array.isArray(data) && data.length > 0) {
-            qcSheetData = data;
-            qcDataLoaded = true;
-
-            /* 뱃지: 완료 */
+            qcSheetData = data; qcDataLoaded = true;
             if (badge) { badge.className = 'preload-badge ready'; badge.title = '시트 ' + data.length + '개 준비됨'; }
-
-            /* 모달이 이미 열려있는 경우 즉시 안내 문구 업데이트 */
             const modal = document.getElementById('qcModal');
             if (modal && modal.style.display === 'flex') {
                 const r = document.getElementById('qcSearchResult');
@@ -320,7 +335,6 @@ function loadQcSheetData() {
                 }
             }
         } else {
-            /* 뱃지: 오류 */
             if (badge) { badge.className = 'preload-badge error'; badge.title = '시트 목록 로드 실패'; }
         }
     };
@@ -333,23 +347,13 @@ function loadQcSheetData() {
     document.body.appendChild(s);
 }
 
-/* ── QC 시트 검색 필터 ── */
 function filterQcSheets() {
     const q = document.getElementById('qcSearchInput').value.trim().toLowerCase();
     const r = document.getElementById('qcSearchResult');
-    if (!qcDataLoaded) {
-        r.innerHTML = '<p class="qc-result-empty">시트 목록 로딩 중입니다. 잠시 기다려 주세요...</p>';
-        return;
-    }
-    if (!q) {
-        r.innerHTML = '<p class="qc-result-empty">검색어를 입력하면 시트 목록에서 찾아드립니다.</p>';
-        return;
-    }
+    if (!qcDataLoaded) { r.innerHTML = '<p class="qc-result-empty">시트 목록 로딩 중입니다. 잠시 기다려 주세요...</p>'; return; }
+    if (!q) { r.innerHTML = '<p class="qc-result-empty">검색어를 입력하면 시트 목록에서 찾아드립니다.</p>'; return; }
     const f = qcSheetData.filter(i => i.sheetName.toLowerCase().includes(q));
-    if (f.length === 0) {
-        r.innerHTML = '<p class="qc-result-empty">"' + escapeHtml(q) + '" 에 해당하는 시트가 없습니다.</p>';
-        return;
-    }
+    if (f.length === 0) { r.innerHTML = '<p class="qc-result-empty">"' + escapeHtml(q) + '" 에 해당하는 시트가 없습니다.</p>'; return; }
     let h = '<div class="qc-result-count">' + f.length + '개 시트 발견</div>';
     f.forEach(i => {
         const u = 'https://docs.google.com/spreadsheets/d/' + i.spreadsheetId + '/edit#gid=' + i.gid;
@@ -359,7 +363,6 @@ function filterQcSheets() {
     });
     r.innerHTML = h;
 }
-
 function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 function highlightMatch(t, q) {
     if (!q) return t;
