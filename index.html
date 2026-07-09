@@ -18,6 +18,7 @@
             --delivery-accent: #10b981;
             --qc-accent: #f59e0b;
             --manual-accent: #8b5cf6;
+            --kc-accent: #06b6d4;
             --danger-color: #ef4444;
             --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
             --shadow-hover: 0 20px 25px -5px rgb(0 0 0 / 0.1);
@@ -26,7 +27,7 @@
             --bg-color: #0f172a; --container-bg: #1e293b; --text-main: #f8fafc;
             --text-sub: #94a3b8; --btn-bg: #334155; --btn-border: #475569;
             --accent: #60a5fa; --gt-icon-bg: #60a5fa; --gt-icon-text: #0f172a;
-            --danger-color: #f87171; --manual-accent: #a78bfa;
+            --danger-color: #f87171; --manual-accent: #a78bfa; --kc-accent: #22d3ee;
         }
         * { box-sizing: border-box; transition: background-color 0.25s, color 0.25s, transform 0.2s; }
         body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
@@ -44,6 +45,7 @@
         .btn.qc-btn:hover { border-color: var(--qc-accent); color: var(--qc-accent); }
         .btn.delivery-btn:hover { border-color: var(--delivery-accent); color: var(--delivery-accent); }
         .btn.manual-btn:hover { border-color: var(--manual-accent); color: var(--manual-accent); }
+        .btn.kc-btn:hover { border-color: var(--kc-accent); color: var(--kc-accent); }
         .icon-emoji { font-size: 32px; margin-bottom: 12px; }
         .icon-gt { width: 36px; height: 36px; border-radius: 50%; background: var(--gt-icon-bg); color: var(--gt-icon-text); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; margin-bottom: 12px; }
         /* 프리로드 뱃지 */
@@ -69,6 +71,8 @@
         .manual-sub-btn .brand-name { flex: 1; text-align: left; letter-spacing: 0.03em; }
         .manual-sub-btn .brand-arrow { color: var(--text-sub); font-size: 18px; flex-shrink: 0; transition: color 0.2s, transform 0.2s; }
         .manual-sub-btn:hover .brand-arrow { color: white; transform: translateX(3px); }
+        /* ★ KC 인증 모달 전용 (메뉴얼 리스트와 동일 구조, 색상만 kc-accent) */
+        .kc-sub-btn:hover { background: var(--kc-accent) !important; border-color: var(--kc-accent) !important; }
         /* 부품/QC 공통 */
         #searchResult { max-height: 300px; overflow-y: auto; margin-top: 20px; border-radius: 16px; border: 1px solid var(--btn-border); }
         .result-table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: left; }
@@ -121,7 +125,7 @@
     <div class="grid">
         <a href="https://docs.google.com/spreadsheets/d/1L9yynlrhYSmm6XVQafMxsBVTa-I-6Y14fIrhZmwT73I/edit?gid=485381937" target="_blank" class="btn"><span class="icon-emoji">💻</span>호환성</a>
         <div onclick="openModal('rmaModal')" class="btn"><span class="icon-emoji">📦</span>RMA</div>
-        <a href="https://support.gtgear.co.kr/list_new" target="_blank" class="btn"><span class="icon-emoji">🛠️</span>서포트</a>
+        <div onclick="openModal('kcModal')" class="btn kc-btn"><span class="icon-emoji">📜</span>KC 인증</div>
         <a href="https://blog.naver.com/gtgearcokr" target="_blank" class="btn"><div class="icon-gt">GT</div>지티블로그</a>
         <div onclick="openModal('qcModal')" class="btn qc-btn">
             <span class="preload-badge loading" id="qcPreloadBadge" title="시트 데이터 로딩 중..."></span>
@@ -225,6 +229,45 @@
         </a>
     </div>
     <span class="close-btn" onclick="closeModal('manualModal')">닫기 (ESC)</span>
+</div></div>
+
+<!-- ★ KC 인증 모달 -->
+<div id="kcModal" class="modal"><div class="modal-content">
+    <h3 style="margin-top:0; color: var(--kc-accent);">📜 KC 인증</h3>
+    <p style="font-size:13px; color:var(--text-sub); margin: 0 0 4px 0;">필요한 항목을 선택하면 해당 페이지로 이동합니다.</p>
+    <div class="manual-list">
+        <a href="https://docs.google.com/spreadsheets/d/15NlssRODakzKdFd3mFI3aNX9_mzSuC8WsGzH8A8FGNM/edit?gid=517107491#gid=517107491" target="_blank" class="manual-sub-btn kc-sub-btn">
+            <span class="brand-icon">🗂️</span>
+            <span class="brand-name">KC 인증 관리</span>
+            <span class="brand-arrow">→</span>
+        </a>
+        <a href="https://www.dropbox.com/" target="_blank" class="manual-sub-btn kc-sub-btn">
+            <span class="brand-icon">📁</span>
+            <span class="brand-name">DropBox</span>
+            <span class="brand-arrow">→</span>
+        </a>
+        <a href="https://www.safetykorea.kr/release/certificationsearch" target="_blank" class="manual-sub-btn kc-sub-btn">
+            <span class="brand-icon">🛡️</span>
+            <span class="brand-name">안전인증 검색</span>
+            <span class="brand-arrow">→</span>
+        </a>
+        <a href="https://www.rra.go.kr/ko/license/A_c_search.do" target="_blank" class="manual-sub-btn kc-sub-btn">
+            <span class="brand-icon">📡</span>
+            <span class="brand-name">적합인증 검색</span>
+            <span class="brand-arrow">→</span>
+        </a>
+        <a href="https://docs.google.com/spreadsheets/d/1B9T0Tu8EotsFsLqVmXmUty_f9HTzQH4ZLvP4K_M7pqs/edit?gid=0#gid=0" target="_blank" class="manual-sub-btn kc-sub-btn">
+            <span class="brand-icon">📋</span>
+            <span class="brand-name">KC 인증 리스트</span>
+            <span class="brand-arrow">→</span>
+        </a>
+        <a href="https://kihokim-gt.github.io/kc-certification-dashboard/" target="_blank" class="manual-sub-btn kc-sub-btn">
+            <span class="brand-icon">📊</span>
+            <span class="brand-name">KC 인증 대시보드</span>
+            <span class="brand-arrow">→</span>
+        </a>
+    </div>
+    <span class="close-btn" onclick="closeModal('kcModal')">닫기 (ESC)</span>
 </div></div>
 
 <div id="toast">✅ 위치가 복사되었습니다!</div>
