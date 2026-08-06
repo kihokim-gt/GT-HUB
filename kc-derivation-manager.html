@@ -102,13 +102,18 @@ code,kbd,.mono{font-family:'JetBrains Mono',monospace}
 .alert-title{font-weight:600;margin-bottom:2px}
 .alert-items{font-size:12px;opacity:.85;margin-top:4px}
 
-.input-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:20px}
-.input-panel-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
-.input-panel-hint{font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.6}
-.input-panel-hint code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px}
-.model-textarea{width:100%;min-height:90px;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--surface2);color:var(--text);font-size:13px;font-family:'JetBrains Mono',monospace;resize:vertical;line-height:1.8}
-.model-textarea::placeholder{color:var(--text3);font-family:'Inter',sans-serif}
-.input-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+/* DROP ZONE */
+.dropzone{border:1.5px dashed var(--border2);border-radius:var(--radius-lg);padding:28px 24px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:20px;background:var(--surface)}
+.dropzone:hover,.dropzone.over{border-color:var(--accent);background:var(--accent-bg)}
+.dropzone-icon{font-size:32px;margin-bottom:8px}
+.dropzone p{color:var(--text2);font-size:14px;margin-bottom:4px}
+.dropzone span{color:var(--text3);font-size:12px}
+.dropzone input{display:none}
+/* ANALYZING */
+.analyzing-bar{display:none;align-items:center;gap:10px;padding:12px 16px;background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:var(--radius);margin-bottom:20px;font-size:13px;color:var(--accent)}
+.analyzing-bar.show{display:flex}
+.spinner{width:16px;height:16px;border:2px solid var(--accent-border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 /* PREVIEW PANEL */
 .preview-panel{display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:20px}
@@ -233,18 +238,17 @@ code,kbd,.mono{font-family:'JetBrains Mono',monospace}
     </div>
   </div>
 
-  <!-- INPUT PANEL -->
-  <div class="input-panel">
-    <div class="input-panel-title">📋 모델명 입력</div>
-    <div class="input-panel-hint">
-      Claude 채팅에서 이미지 분석 후 추출된 SKU를 붙여넣거나 직접 입력하세요.<br>
-      한 줄에 하나씩 입력 · <code>-KR</code> 자동 제거 · 공백/중복 자동 정리
-    </div>
-    <textarea class="model-textarea" id="modelInput" placeholder="K0P-RB4&#10;K0P-RB6&#10;K0P-RK4&#10;K0P-RK6&#10;..."></textarea>
-    <div class="input-actions">
-      <button class="btn btn-primary" onclick="parseAndPreview()">✓ 모델 확인</button>
-      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('modelInput').value=''">지우기</button>
-    </div>
+  <!-- DROP ZONE -->
+  <div class="dropzone" id="dropzone">
+    <input type="file" id="fileInput" accept="image/*" multiple>
+    <div class="dropzone-icon">📁</div>
+    <p>이미지를 드래그하거나 클릭해서 업로드</p>
+    <span>SKU 목록 이미지 — AI가 모델명을 자동 추출합니다</span>
+  </div>
+  <!-- ANALYZING -->
+  <div class="analyzing-bar" id="analyzingBar">
+    <div class="spinner"></div>
+    <span id="analyzingText">이미지 분석 중...</span>
   </div>
 
   <!-- PREVIEW PANEL -->
@@ -411,17 +415,43 @@ function loadLocal(){
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 
 // ── IMAGE ANALYSIS ──
-function parseAndPreview(){
-  const raw = document.getElementById('modelInput').value;
-  const lines = raw.split(/[\n,;]+/).map(l=>l.trim().replace(/-KR$/i,'').toUpperCase()).filter(l=>l.length>0);
-  pendingModels = [...new Set(lines)];
-  if(!pendingModels.length){ showToast('모델명을 입력해주세요'); return; }
+const PROXY_URL = 'https://kc-proxy-two.vercel.app/api/analyze';
+
+async function analyzeImage(file){
+  const toB64 = f => new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(',')[1]); r.onerror=rej; r.readAsDataURL(f); });
+  const b64 = await toB64(file);
+  const resp = await fetch(PROXY_URL, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ image: b64, mediaType: file.type || 'image/jpeg' })
+  });
+  if(!resp.ok) throw new Error(`서버 오류: ${resp.status}`);
+  return await resp.json();
+}
+
+async function handleFiles(files){
+  const imgs = Array.from(files).filter(f=>f.type.startsWith('image/'));
+  if(!imgs.length) return;
+  document.getElementById('analyzingBar').classList.add('show');
+  let all=[], notes=[];
+  for(const f of imgs){
+    document.getElementById('analyzingText').textContent = `"${f.name}" 분석 중...`;
+    try{
+      const r = await analyzeImage(f);
+      all=[...all,...(r.models||[])];
+      if(r.note) notes.push(r.note);
+    }catch(e){ notes.push(`${f.name}: ${e.message}`); }
+  }
+  document.getElementById('analyzingBar').classList.remove('show');
+  pendingModels=[...new Set(all)];
   const note = document.getElementById('aiNote');
-  note.style.display='none';
-  document.getElementById('tagList').innerHTML = pendingModels.map(m=>`<span class="tag">${m}</span>`).join('');
+  if(notes.length){ note.textContent=notes.join(' / '); note.style.display=''; } else note.style.display='none';
+  document.getElementById('tagList').innerHTML = pendingModels.length
+    ? pendingModels.map(m=>`<span class="tag">${m}</span>`).join('')
+    : `<span style="color:var(--text3);font-size:13px">모델을 찾지 못했습니다. API 키를 확인해주세요.</span>`;
   document.getElementById('previewPanel').classList.add('show');
 }
-function cancelPreview(){ document.getElementById('previewPanel').classList.remove('show'); pendingModels=[]; document.getElementById('modelInput').value=''; }
+function cancelPreview(){ document.getElementById('previewPanel').classList.remove('show'); pendingModels=[]; }
 
 // ── QUEUE ──
 function addToQueue(){
@@ -528,6 +558,13 @@ function toggleTheme(){
   localStorage.setItem('kc_theme',cur==='dark'?'':'dark');
 }
 
+// ── DRAG & DROP ──
+const dz=document.getElementById('dropzone');
+dz.addEventListener('click',()=>document.getElementById('fileInput').click());
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');handleFiles(e.dataTransfer.files)});
+document.getElementById('fileInput').addEventListener('change',e=>handleFiles(e.target.files));
 // ── CERT SELECT ──
 document.getElementById('certSelect').addEventListener('change',function(){
   document.getElementById('certCustom').style.display=this.value==='custom'?'':'none';
