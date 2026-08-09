@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KC 파생 신청 관리</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0f14;
+  --s0:#13151c;
+  --s1:#181b24;
+  --s2:#1e2230;
+  --s3:#252a38;
+  --bd:#252838;
+  --bd2:#313650;
+  --tx:#dde1f0;
+  --tx2:#8890aa;
+  --tx3:#4d5470;
+  --blue:#5b8af5;
+  --blue-d:rgba(91,138,245,.12);
+  --blue-b:rgba(91,138,245,.28);
+  --green:#3ecf8e;
+  --green-d:rgba(62,207,142,.1);
+  --green-b:rgba(62,207,142,.25);
+  --yellow:#f0b429;
+  --yellow-d:rgba(240,180,41,.1);
+  --yellow-b:rgba(240,180,41,.25);
+  --red:#f06464;
+  --red-d:rgba(240,100,100,.1);
+  --red-b:rgba(240,100,100,.25);
+  --purple:#a78bfa;
+  --r:8px;--rl:14px;
+}
+body{font-family:'Pretendard',system-ui,sans-serif;background:var(--bg);color:var(--tx);font-size:14px;line-height:1.6;min-height:100vh}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+
+.app{max-width:1080px;margin:0 auto;padding:32px 20px 80px}
+
+/* ── HEADER ── */
+.hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.hd-l{display:flex;align-items:center;gap:14px}
+.logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#5b8af5,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 6px 20px rgba(91,138,245,.35);flex-shrink:0}
+.hd-title{font-size:18px;font-weight:700;letter-spacing:-.5px}
+.hd-sub{font-size:12px;color:var(--tx3);margin-top:1px}
+.hd-r{display:flex;gap:8px}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--r);border:1px solid var(--bd2);background:var(--s1);color:var(--tx2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;font-family:inherit}
+.btn:hover{background:var(--s2);color:var(--tx)}
+.btn-blue{background:var(--blue-d);color:var(--blue);border-color:var(--blue-b)}.btn-blue:hover{background:rgba(91,138,245,.2)}
+.btn-green{background:var(--green-d);color:var(--green);border-color:var(--green-b)}.btn-green:hover{background:rgba(62,207,142,.16)}
+.btn-red{background:var(--red-d);color:var(--red);border-color:var(--red-b)}.btn-red:hover{background:rgba(240,100,100,.16)}
+.btn-yellow{background:var(--yellow-d);color:var(--yellow);border-color:var(--yellow-b)}
+.btn-xs{padding:3px 9px;font-size:11px;border-radius:6px}
+.btn-sm{padding:5px 11px;font-size:12px}
+.btn-icon{padding:7px 8px}
+.send-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r);background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:opacity .15s;box-shadow:0 4px 14px rgba(91,138,245,.32);letter-spacing:.01em}
+.send-btn:hover{opacity:.86}.send-btn:disabled{opacity:.3;cursor:not-allowed;box-shadow:none}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.stat{background:var(--s1);border:1px solid var(--bd);border-radius:var(--rl);padding:18px 20px;position:relative;overflow:hidden;transition:border-color .2s}
+.stat::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.stat.s-blue::after{background:linear-gradient(90deg,var(--blue),var(--purple))}
+.stat.s-yellow::after{background:var(--yellow)}
+.stat.s-red::after{background:var(--red)}
+.stat.s-green::after{background:var(--green)}
+.stat-n{font-size:30px;font-weight:700;letter-spacing:-.8px;line-height:1}
+.stat.s-blue .stat-n{color:var(--blue)}.stat.s-yellow .stat-n{color:var(--yellow)}.stat.s-red .stat-n{color:var(--red)}.stat.s-green .stat-n{color:var(--green)}
+.stat-l{font-size:11px;color:var(--tx3);font-weight:500;text-transform:uppercase;letter-spacing:.07em;margin-top:6px}
+
+/* ── ALERT ── */
+.alert-bar{display:none;align-items:flex-start;gap:12px;padding:13px 18px;border-radius:var(--r);margin-bottom:20px;border:1px solid var(--red-b);background:var(--red-d);animation:slideDown .3s ease}
+.alert-bar.on{display:flex}
+@keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.alert-ico{font-size:20px;margin-top:-1px;flex-shrink:0}
+.alert-ttl{font-size:13px;font-weight:700;color:var(--red);margin-bottom:3px}
+.alert-txt{font-size:12px;color:var(--tx2);line-height:1.8}
+
+/* ── TABS ── */
+.tabs{display:flex;border-bottom:1px solid var(--bd);margin-bottom:24px;gap:0}
+.tab{padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;color:var(--tx3);border-bottom:2px solid transparent;margin-bottom:-1px;background:none;border-top:none;border-left:none;border-right:none;transition:all .15s;font-family:inherit}
+.tab:hover{color:var(--tx2)}.tab.on{color:var(--blue);border-bottom-color:var(--blue)}
+.tbadge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--red-d);color:var(--red);font-size:10px;font-weight:700;margin-left:6px;border:1px solid var(--red-b)}
+
+/* ── SECTION LABEL ── */
+.slabel{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;padding-left:2px}
+
+/* ── AGENCY CARD ── */
+.agency{margin-bottom:14px;border:1px solid var(--bd);border-radius:var(--rl);overflow:hidden;transition:border-color .2s}
+.agency.has-due{border-color:rgba(240,100,100,.3)}
+.agency-hd{display:flex;align-items:center;justify-content:space-between;padding:15px 20px;background:var(--s1);cursor:pointer;user-select:none;transition:background .15s}
+.agency-hd:hover{background:var(--s2)}
+.agency-hd-l{display:flex;align-items:center;gap:11px}
+.adot{width:10px;height:10px;border-radius:50%;flex-shrink:0;transition:transform .2s}
+.adot.pulse{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.agency-name{font-size:14px;font-weight:700}
+.agency-email{font-size:11px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-left:4px}
+.agency-hd-r{display:flex;align-items:center;gap:10px}
+.pill{font-size:11px;padding:3px 11px;border-radius:20px;font-weight:600;border:1px solid}
+.pill.p-has{background:var(--yellow-d);color:var(--yellow);border-color:var(--yellow-b)}
+.pill.p-due{background:var(--red-d);color:var(--red);border-color:var(--red-b)}
+.pill.p-none{background:var(--s2);color:var(--tx3);border-color:var(--bd)}
+.chev{color:var(--tx3);font-size:11px;transition:transform .2s;margin-left:2px}
+.chev.open{transform:rotate(180deg)}
+.agency-body{border-top:1px solid var(--bd)}
+
+/* ── CERT ROW ── */
+.cert-row{border-bottom:1px solid var(--bd);background:var(--s0)}
+.cert-row:last-child{border-bottom:none}
+.cert-hd{display:flex;align-items:center;justify-content:space-between;padding:11px 20px;cursor:pointer;transition:background .15s}
+.cert-hd:hover{background:var(--s1)}
+.cert-hd-l{display:flex;align-items:center;gap:10px}
+.cert-code{font-size:12px;font-weight:600;color:var(--blue);font-family:'JetBrains Mono',monospace}
+.cert-cnt{font-size:11px;color:var(--tx3)}
+.cert-hd-r{display:flex;align-items:center;gap:8px}
+.dpill{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;border:1px solid;white-space:nowrap}
+.dp-ok{background:var(--green-d);color:var(--green);border-color:var(--green-b)}
+.dp-warn{background:var(--yellow-d);color:var(--yellow);border-color:var(--yellow-b)}
+.dp-due{background:var(--red-d);color:var(--red);border-color:var(--red-b)}
+.cert-arr{font-size:10px;color:var(--tx3);transition:transform .2s}.cert-arr.open{transform:rotate(180deg)}
+
+/* ── CERT DETAIL ── */
+.cert-detail{display:none;padding:14px 20px 18px;background:var(--s1);border-top:1px solid var(--bd)}
+.cert-detail.open{display:block}
+.detail-meta{font-size:11px;color:var(--tx3);margin-bottom:11px;display:flex;align-items:center;gap:8px}
+.model-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.mtag{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:4px 10px 4px 11px;border-radius:20px;background:var(--s0);color:var(--tx2);border:1px solid var(--bd2);font-family:'JetBrains Mono',monospace;transition:border-color .12s}
+.mtag:hover{border-color:var(--bd2)}
+.mdel{background:none;border:none;cursor:pointer;color:var(--tx3);font-size:14px;line-height:1;padding:0 0 0 3px;transition:color .12s;font-family:inherit}
+.mdel:hover{color:var(--red)}
+.detail-acts{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+/* EDIT MODE */
+.edit-box{display:none;margin-bottom:14px}.edit-box.on{display:block}
+.edit-ta{width:100%;min-height:90px;padding:10px 13px;border:1px solid var(--blue-b);border-radius:var(--r);background:var(--s0);color:var(--tx);font-size:12px;font-family:'JetBrains Mono',monospace;resize:vertical;line-height:1.9;outline:none}
+.edit-ta:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(91,138,245,.1)}
+.edit-hint{font-size:11px;color:var(--tx3);margin:6px 0 9px}
+.edit-acts{display:flex;gap:7px}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:40px 20px;color:var(--tx3);background:var(--s0)}
+.empty-ico{font-size:30px;opacity:.35;margin-bottom:8px}
+.empty p{font-size:13px}
+.empty small{font-size:11px;display:block;margin-top:4px;color:var(--tx3)}
+
+/* ── HISTORY ── */
+.hist-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--rl);overflow:hidden}
+.hist-tbl{width:100%;border-collapse:collapse}
+.hist-tbl th{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;padding:10px 16px;text-align:left;border-bottom:1px solid var(--bd);background:var(--s0)}
+.hist-tbl td{padding:12px 16px;border-bottom:1px solid var(--bd);vertical-align:top}
+.hist-tbl tr:last-child td{border-bottom:none}
+.hist-tbl tr:hover td{background:var(--s2)}
+.hcert{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--blue)}
+.hagency{font-size:12px;color:var(--tx2)}
+.hmodels{font-size:11px;color:var(--tx2);line-height:1.7}
+.hdate{font-size:11px;color:var(--tx3);white-space:nowrap;font-family:'JetBrains Mono',monospace}
+.hundo{background:none;border:1px solid var(--bd2);border-radius:5px;padding:2px 8px;font-size:10px;color:var(--tx3);cursor:pointer;font-family:inherit;transition:all .12s}
+.hundo:hover{background:var(--red-d);color:var(--red);border-color:var(--red-b)}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)}
+.overlay.on{display:flex}
+.modal{background:var(--s1);border:1px solid var(--bd2);border-radius:var(--rl);padding:26px;width:100%;max-width:460px;animation:mIn .2s ease}
+@keyframes mIn{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.modal-ttl{font-size:16px;font-weight:700;margin-bottom:18px}
+.field-label{font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px}
+.field-label:first-of-type{margin-top:0}
+.finput{width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--s0);color:var(--tx);font-size:13px;outline:none;transition:border-color .15s;font-family:inherit}
+.finput:focus{border-color:var(--blue)}
+.fselect{width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--s0);color:var(--tx);font-size:13px;outline:none;cursor:pointer;font-family:inherit}
+.fhint{font-size:11px;color:var(--tx3);background:var(--s0);border-radius:var(--r);padding:10px 13px;margin-top:10px;line-height:1.8}
+.modal-acts{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--s3);color:var(--tx);border:1px solid var(--bd2);padding:10px 18px;border-radius:var(--r);font-size:13px;font-weight:500;opacity:0;transition:all .25s;pointer-events:none;z-index:999;white-space:nowrap;max-width:90vw}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:640px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .hd{flex-wrap:wrap;gap:12px}
+  .agency-email{display:none}
+  .app{padding:18px 14px 60px}
+  .send-btn{font-size:11px;padding:7px 13px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="hd">
+    <div class="hd-l">
+      <div class="logo">🔐</div>
+      <div>
+        <div class="hd-title">KC 파생 신청 관리</div>
+        <div class="hd-sub">ToBe Networks Global · 인증업체별 파생 모델 관리</div>
+      </div>
+    </div>
+    <div class="hd-r">
+      <button class="btn btn-icon" onclick="openAddModal()" title="모델 직접 추가">＋ 직접 추가</button>
+      <button class="btn btn-blue btn-icon" onclick="openImportModal()" title="Claude에서 데이터 붙여넣기">📥 Claude 붙여넣기</button>
+      <button class="btn" id="syncBtn" onclick="syncNow()" title="GitHub Gist 동기화">↺ 동기화</button>
+      <button class="btn btn-icon" onclick="openSyncModal()" title="동기화 설정">⚙️</button>
+    </div>
+  </div>
+
+  <!-- SYNC BAR -->
+  <div id="syncBar" style="display:none;align-items:center;gap:10px;padding:9px 14px;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:16px;font-size:12px">
+    <div id="syncDot" style="width:7px;height:7px;border-radius:50%;background:var(--tx3);flex-shrink:0;transition:background .3s"></div>
+    <span id="syncTxt" style="color:var(--tx2);flex:1">동기화 미설정</span>
+    <span id="syncTime" style="color:var(--tx3);font-size:11px;font-family:'JetBrains Mono',monospace"></span>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat s-blue"><div class="stat-n" id="stTotal">0</div><div class="stat-l">전체 대기 모델</div></div>
+    <div class="stat s-yellow"><div class="stat-n" id="stSoon">0</div><div class="stat-l">2일 이내 신청</div></div>
+    <div class="stat s-red"><div class="stat-n" id="stDue">0</div><div class="stat-l">기간 초과</div></div>
+    <div class="stat s-green"><div class="stat-n" id="stSent">0</div><div class="stat-l">신청 완료 건</div></div>
+  </div>
+
+  <!-- ALERT -->
+  <div class="alert-bar" id="alertBar">
+    <div class="alert-ico">🔔</div>
+    <div>
+      <div class="alert-ttl">신청 기간(7일)이 지난 항목이 있습니다!</div>
+      <div class="alert-txt" id="alertTxt"></div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab on" onclick="showTab('q')" id="tq">대기 중 <span class="tbadge" id="dueBadge" style="display:none">0</span></button>
+    <button class="tab" onclick="showTab('h')" id="th">신청 이력</button>
+  </div>
+
+  <!-- QUEUE TAB -->
+  <div id="tabQ">
+    <div class="slabel">인증업체별 대기 현황</div>
+    <div id="agencyList"></div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div id="tabH" style="display:none">
+    <div class="slabel">신청 완료 이력</div>
+    <div id="histList"></div>
+  </div>
+</div>
+
+<!-- SYNC MODAL -->
+<div class="overlay" id="syncModal">
+  <div class="modal">
+    <div class="modal-ttl">⚙️ GitHub Gist 동기화 설정</div>
+    <div style="font-size:12px;color:var(--tx2);margin-bottom:16px;line-height:1.7">
+      GitHub Gist를 통해 Claude ↔ 페이지 데이터를 동기화합니다.<br>
+      Claude에게 토큰과 Gist ID를 알려주면 Claude가 직접 데이터를 push합니다.
+    </div>
+    <div class="field-label">GitHub Personal Access Token</div>
+    <input class="finput" id="syncToken" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+    <div class="field-label">Gist ID <span style="color:var(--tx3);font-weight:400;text-transform:none">(처음이면 비워두세요 — 자동 생성)</span></div>
+    <input class="finput" id="syncGistId" type="text" placeholder="자동 생성됩니다">
+    <div class="fhint">
+      1. <a href="https://github.com/settings/tokens/new" target="_blank">github.com → Settings → Tokens (classic)</a><br>
+      2. Note: <code>KC Dashboard</code> · Expiration: <code>No expiration</code><br>
+      3. Scopes: <code>gist</code> 체크 → Generate token<br>
+      4. 토큰 저장 후 이 페이지에 입력 → 저장<br>
+      5. 생성된 <strong>Gist ID</strong>를 Claude에게 알려주세요
+    </div>
+    <div class="modal-acts">
+      <button class="btn" onclick="closeSyncModal()">취소</button>
+      <button class="btn btn-blue" onclick="saveSyncSettings()">저장 및 동기화</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="overlay" id="importModal">
+  <div class="modal">
+    <div class="modal-ttl">📥 Claude 데이터 붙여넣기</div>
+    <div style="font-size:12px;color:var(--tx2);margin-bottom:14px;line-height:1.7">
+      Claude가 제공한 JSON 데이터를 아래에 붙여넣으세요.<br>
+      기존 데이터에 병합됩니다 (중복 모델 자동 제거).
+    </div>
+    <div class="field-label">JSON 데이터</div>
+    <textarea class="finput" id="importJson" rows="8" style="resize:vertical;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7" placeholder='{"cert":"R-R-TB8-K","models":["K0P-RB4","K0P-RB6",...]}'></textarea>
+    <div id="importError" style="font-size:11px;color:var(--red);margin-top:6px;display:none"></div>
+    <div class="modal-acts">
+      <button class="btn" onclick="closeImportModal()">취소</button>
+      <button class="btn btn-blue" onclick="doImport()">✓ 추가하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-ttl">➕ 파생 모델 추가</div>
+    <div class="field-label">인증서 선택</div>
+    <select class="fselect" id="addCert">
+      <option value="R-R-TB8-K">R-R-TB8-K (튜풀테크놀러지)</option>
+      <option value="R-R-TB8-EX">R-R-TB8-EX (튜풀테크놀러지)</option>
+      <option value="R-R-TB8-V">R-R-TB8-V (튜풀테크놀러지)</option>
+      <option value="R-R-TB8-ScubaS1">R-R-TB8-ScubaS1 (튜풀테크놀러지)</option>
+      <option value="R-R-TB8-K10RGBLED">R-R-TB8-K10RGBLED (튜풀테크놀러지)</option>
+      <option value="R-R-TB8-Q">R-R-TB8-Q (나이스인증원)</option>
+      <option value="R-R-TB8-K5">R-R-TB8-K5 (나이스인증원)</option>
+      <option value="R-R-TB8-K4RGBLED">R-R-TB8-K4RGBLED (나이스인증원)</option>
+      <option value="R-R-TB8-Q8RGBLED">R-R-TB8-Q8RGBLED (나이스인증원)</option>
+      <option value="custom">직접 입력</option>
+    </select>
+    <input class="finput" id="addCertCustom" placeholder="인증번호 직접 입력" style="display:none;margin-top:8px">
+    <div class="field-label">모델명 <span style="color:var(--tx3);font-weight:400;text-transform:none">(한 줄에 하나씩, -KR 자동 제거)</span></div>
+    <textarea class="finput" id="addModels" rows="5" style="resize:vertical;font-family:'JetBrains Mono',monospace;line-height:1.9" placeholder="K0P-RB4&#10;K0P-RB6&#10;K0P-RK4&#10;..."></textarea>
+    <div class="modal-acts">
+      <button class="btn" onclick="closeAddModal()">취소</button>
+      <button class="btn btn-blue" onclick="doAdd()">✓ 대기열에 추가</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ──
+const AG = {
+  '튜풀테크놀러지':{email:'smsuh2003@naver.com', color:'#f0b429', sal:'전무님'},
+  '나이스인증원':  {email:'djoh@inice.co.kr',    color:'#5b8af5', sal:'이사님'},
+  '에이블테크':   {email:'able@abletech-korea.com', color:'#3ecf8e', sal:'담당자님'}
+};
+const CM = {
+  'R-R-TB8-K':'튜풀테크놀러지','R-R-TB8-EX':'튜풀테크놀러지','R-R-TB8-V':'튜풀테크놀러지',
+  'R-R-TB8-ScubaS1':'튜풀테크놀러지','R-R-TB8-K10RGBLED':'튜풀테크놀러지','R-R-TB8-K3RGBLED':'튜풀테크놀러지',
+  'R-R-TB8-Q':'나이스인증원','R-R-TB8-K5':'나이스인증원',
+  'R-R-TB8-K4RGBLED':'나이스인증원','R-R-TB8-Q8RGBLED':'나이스인증원','R-R-TB8-Q1RGBLED':'나이스인증원'
+};
+function ga(cert){ return CM[cert] || (/R-R-TB8-Q/i.test(cert)?'나이스인증원':'튜풀테크놀러지'); }
+function dl(ts){ return 7-Math.floor((Date.now()-ts)/86400000); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+
+// ── STATE ──
+let S = {q:[], h:[]};
+let openA = new Set(Object.keys(AG));
+let openC = new Set();
+let editC = new Set();
+
+function save(){
+  localStorage.setItem('kc_v3', JSON.stringify(S));
+  if(typeof ghToken !== 'undefined' && ghToken) {
+    clearTimeout(window._syncDebounce);
+    window._syncDebounce = setTimeout(()=>pushGist().then(()=>{
+      setSyncStatus('ok','동기화 완료'); setSyncTime();
+    }).catch(e=>setSyncStatus('warn','자동 저장 실패')), 1500);
+  }
+}
+function load(){ try{ const d=localStorage.getItem('kc_v3'); if(d) S=JSON.parse(d); }catch(e){} }
+
+// ── ACTIONS ──
+function addModels(cert, rawModels){
+  const models = [...new Set(rawModels.split(/[\n,;]+/).map(m=>m.trim().replace(/-KR$/i,'')).filter(Boolean))];
+  if(!models.length){ toast('모델명을 입력해주세요'); return false; }
+  const ex = S.q.find(q=>q.cert===cert);
+  if(ex){
+    const added = models.filter(m=>!ex.models.includes(m));
+    if(!added.length){ toast('이미 모두 등록된 모델입니다'); return false; }
+    ex.models.push(...added);
+    toast(`${cert}에 ${added.length}개 추가`);
+  } else {
+    S.q.push({id:uid(), cert, models, at:Date.now()});
+    toast(`${cert}에 ${models.length}개 모델 추가`);
+  }
+  openA.add(ga(cert)); openC.add(S.q.find(q=>q.cert===cert)?.id||'');
+  save(); render(); return true;
+}
+function delModel(qid, m){
+  const item = S.q.find(q=>q.id===qid); if(!item) return;
+  item.models = item.models.filter(x=>x!==m);
+  if(!item.models.length) S.q = S.q.filter(q=>q.id!==qid);
+  save(); render(); toast(m+' 삭제됨');
+}
+function saveEdit(qid){
+  const item = S.q.find(q=>q.id===qid); if(!item) return;
+  const ta = document.getElementById('ta_'+qid); if(!ta) return;
+  const nm = [...new Set(ta.value.split(/[\n,;]+/).map(l=>l.trim().replace(/-KR$/i,'')).filter(Boolean))];
+  if(!nm.length){ toast('모델명을 입력해주세요'); return; }
+  item.models = nm; editC.delete(qid);
+  save(); render(); toast('수정 저장됨');
+}
+function markSent(qid){
+  const item = S.q.find(q=>q.id===qid); if(!item) return;
+  S.h.unshift({...item, sentAt:Date.now()});
+  S.q = S.q.filter(q=>q.id!==qid);
+  save(); render(); toast('신청 완료 처리됨 ✓');
+}
+function undoSent(hid){
+  const item = S.h.find(h=>h.id===hid); if(!item) return;
+  S.q.push({...item, at:item.at||item.addedAt||Date.now()});
+  S.h = S.h.filter(h=>h.id!==hid);
+  save(); render(); toast('대기열로 복원됨');
+}
+function delItem(qid){
+  if(!confirm('이 항목을 삭제하시겠습니까?')) return;
+  S.q = S.q.filter(q=>q.id!==qid);
+  save(); render(); toast('항목 삭제됨');
+}
+function sendAgency(agency){
+  const items = S.q.filter(q=>ga(q.cert)===agency);
+  if(!items.length){ toast('대기 중인 항목 없음'); return; }
+  const info = AG[agency]||{};
+  const blocks = items.map(i=>`기존 인증서:\n${i.cert}\n\n단순 모델 파생:\n${i.models.join('\n')}`).join('\n\n');
+  const body = `${info.sal||'담당자님'} 안녕하세요~\n\n키크론 단순모델 파생 요청드립니다.\n\n${blocks}\n\n감사합니다.\n\nKiho Kim | 김기호\nTel 070-5014-1783 | Fax 031-335-8801\nEmail kiho.kim@tbnws.com\nADD 17040 경기도 용인시 처인구 포곡읍 성산로 434, 3층\n(주)투비네트웍스글로벌 | ToBe Networks, Inc.`;
+  const subj = encodeURIComponent('키크론 단순모델 파생 요청'+(items.length>1?` (${items.length}건)`:''));
+  window.open(`mailto:${info.email||''}?cc=heewoong.shin@tbnws.com,seongmook.kang@tbnws.com&subject=${subj}&body=${encodeURIComponent(body)}`);
+}
+
+// ── RENDER ──
+function render(){ rStats(); rAlert(); rQueue(); rHist(); }
+
+function rStats(){
+  const total = S.q.reduce((a,q)=>a+q.models.length, 0);
+  const soon  = S.q.filter(q=>{const d=dl(q.at);return d<=2&&d>0}).reduce((a,q)=>a+q.models.length,0);
+  const due   = S.q.filter(q=>dl(q.at)<=0).reduce((a,q)=>a+q.models.length,0);
+  document.getElementById('stTotal').textContent = total;
+  document.getElementById('stSoon').textContent  = soon;
+  document.getElementById('stDue').textContent   = due;
+  document.getElementById('stSent').textContent  = S.h.length;
+  const dueN = S.q.filter(q=>dl(q.at)<=0).length;
+  const db = document.getElementById('dueBadge');
+  dueN ? (db.textContent=dueN, db.style.display='inline-flex') : (db.style.display='none');
+}
+
+function rAlert(){
+  const due = S.q.filter(q=>dl(q.at)<=0);
+  const bar = document.getElementById('alertBar');
+  if(due.length){
+    bar.classList.add('on');
+    document.getElementById('alertTxt').innerHTML = due.map(d=>`• <strong>${d.cert}</strong> — ${d.models.length}개 모델 (${ga(d.cert)})`).join('<br>');
+  } else bar.classList.remove('on');
+}
+
+function rQueue(){
+  const wrap = document.getElementById('agencyList');
+  const allA = [...Object.keys(AG)];
+  S.q.forEach(q=>{ const a=ga(q.cert); if(!allA.includes(a)) allA.push(a); });
+
+  if(!S.q.length){
+    wrap.innerHTML = `<div class="empty" style="border-radius:var(--rl);border:1px solid var(--bd)"><div class="empty-ico">📭</div><p>대기 중인 파생 신청이 없습니다</p><small>Claude에게 이미지를 보내거나 오른쪽 상단 '직접 추가' 버튼으로 추가하세요</small></div>`;
+    return;
+  }
+
+  wrap.innerHTML = allA.map(agency=>{
+    const items = S.q.filter(q=>ga(q.cert)===agency);
+    const info  = AG[agency]||{color:'#9196a8'};
+    const hasDue  = items.some(q=>dl(q.at)<=0);
+    const hasSoon = items.some(q=>{ const d=dl(q.at); return d<=2&&d>0; });
+    const totalM  = items.reduce((a,q)=>a+q.models.length,0);
+    const pillCls = hasDue?'p-due':hasSoon?'p-has':'p-none';
+    const pillTxt = totalM>0 ? `${totalM}개 대기` : '없음';
+    const isOpen  = openA.has(agency);
+
+    const rows = items.map(item=>{
+      const d = dl(item.at);
+      const dpCls = d<=0?'dp-due':d<=2?'dp-warn':'dp-ok';
+      const dpTxt = d<=0?'기간 초과!':d===1?'D-1':`D-${d}`;
+      const isOC  = openC.has(item.id);
+      const isEC  = editC.has(item.id);
+      const added = new Date(item.at).toLocaleDateString('ko-KR',{month:'short',day:'numeric'});
+      const tags  = item.models.map(m=>
+        `<span class="mtag">${m}<button class="mdel" onclick="event.stopPropagation();delModel('${item.id}','${m}')" title="삭제">×</button></span>`
+      ).join('');
+      const editBox = isEC ? `
+        <div class="edit-box on">
+          <textarea class="edit-ta" id="ta_${item.id}">${item.models.join('\n')}</textarea>
+          <div class="edit-hint">한 줄에 하나씩 입력 · -KR 자동 제거</div>
+          <div class="edit-acts">
+            <button class="btn btn-blue btn-xs" onclick="saveEdit('${item.id}')">✓ 저장</button>
+            <button class="btn btn-xs" onclick="cancelEdit('${item.id}')">취소</button>
+          </div>
+        </div>` : '';
+      return `
+        <div class="cert-row">
+          <div class="cert-hd" onclick="toggleC('${item.id}')">
+            <div class="cert-hd-l">
+              <span class="cert-code">${item.cert}</span>
+              <span class="cert-cnt">${item.models.length}개 모델</span>
+            </div>
+            <div class="cert-hd-r">
+              <span class="dpill ${dpCls}">${dpTxt}</span>
+              <span class="cert-arr ${isOC?'open':''}">▼</span>
+            </div>
+          </div>
+          <div class="cert-detail ${isOC?'open':''}">
+            <div class="detail-meta">
+              <span>📅 ${added} 추가</span>
+            </div>
+            ${editBox}
+            ${!isEC ? `<div class="model-wrap">${tags}</div>` : ''}
+            <div class="detail-acts">
+              <button class="btn btn-xs" onclick="toggleEdit('${item.id}')">${isEC?'✕ 편집 닫기':'✏️ 모델 편집'}</button>
+              <button class="btn btn-green btn-xs" onclick="markSent('${item.id}')">✓ 신청 완료</button>
+              <button class="btn btn-red btn-xs" onclick="delItem('${item.id}')">🗑 삭제</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    const bodyHtml = isOpen ? (items.length
+      ? `<div class="agency-body">${rows}</div>`
+      : `<div class="agency-body"><div class="empty"><div class="empty-ico">📭</div><p>대기 중인 모델 없음</p></div></div>`)
+      : '';
+
+    return `
+      <div class="agency ${hasDue?'has-due':''}">
+        <div class="agency-hd" onclick="toggleA('${agency}')">
+          <div class="agency-hd-l">
+            <div class="adot ${hasDue?'pulse':''}" style="background:${info.color}"></div>
+            <span class="agency-name" style="color:${info.color}">${agency}</span>
+            <span class="agency-email">${info.email||''}</span>
+          </div>
+          <div class="agency-hd-r">
+            ${items.length ? `<button class="send-btn" onclick="event.stopPropagation();sendAgency('${agency}')">✉️ 일괄 메일 발송${items.length>1?` (${items.length}건)`:''}</button>` : ''}
+            <span class="pill ${pillCls}">${pillTxt}</span>
+            <span class="chev ${isOpen?'open':''}">▼</span>
+          </div>
+        </div>
+        ${bodyHtml}
+      </div>`;
+  }).join('');
+}
+
+function rHist(){
+  const wrap = document.getElementById('histList');
+  if(!S.h.length){
+    wrap.innerHTML = `<div class="empty" style="border-radius:var(--rl);border:1px solid var(--bd)"><div class="empty-ico">📤</div><p>신청 완료 이력 없음</p></div>`;
+    return;
+  }
+  const rows = S.h.map(h=>{
+    const sentD  = new Date(h.sentAt).toLocaleDateString('ko-KR',{month:'short',day:'numeric'});
+    const addedD = new Date(h.at||h.addedAt||h.sentAt).toLocaleDateString('ko-KR',{month:'short',day:'numeric'});
+    const prev   = h.models.slice(0,6).join(', ')+(h.models.length>6?` 외 ${h.models.length-6}개`:'');
+    return `<tr>
+      <td><span class="hcert">${h.cert}</span></td>
+      <td class="hagency">${ga(h.cert)}</td>
+      <td><span class="hmodels">${prev}</span></td>
+      <td class="hdate">${addedD} 추가</td>
+      <td class="hdate">${sentD} 완료</td>
+      <td><button class="hundo" onclick="undoSent('${h.id}')">↩ 복원</button></td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML = `<div class="hist-card"><table class="hist-tbl"><thead><tr><th>인증서</th><th>업체</th><th>모델</th><th>추가일</th><th>신청일</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+// ── TOGGLE ──
+function toggleA(a){ openA.has(a)?openA.delete(a):openA.add(a); rQueue(); }
+function toggleC(id){ openC.has(id)?openC.delete(id):openC.add(id); rQueue(); }
+function toggleEdit(id){ editC.has(id)?editC.delete(id):editC.add(id); openC.add(id); rQueue();
+  if(editC.has(id)) setTimeout(()=>{ const t=document.getElementById('ta_'+id); if(t){t.focus();t.setSelectionRange(t.value.length,t.value.length);} },50);
+}
+function cancelEdit(id){ editC.delete(id); rQueue(); }
+
+// ── TAB ──
+function showTab(t){
+  document.getElementById('tabQ').style.display = t==='q'?'':'none';
+  document.getElementById('tabH').style.display = t==='h'?'':'none';
+  document.getElementById('tq').classList.toggle('on', t==='q');
+  document.getElementById('th').classList.toggle('on', t==='h');
+  if(t==='h') rHist();
+}
+
+// ── ADD MODAL ──
+document.getElementById('addCert').addEventListener('change', function(){
+  document.getElementById('addCertCustom').style.display = this.value==='custom'?'block':'none';
+});
+function openAddModal(){ document.getElementById('addModal').classList.add('on'); document.getElementById('addModels').value=''; document.getElementById('addModels').focus(); }
+function closeAddModal(){ document.getElementById('addModal').classList.remove('on'); }
+function doAdd(){
+  let cert = document.getElementById('addCert').value;
+  if(cert==='custom') cert = document.getElementById('addCertCustom').value.trim();
+  if(!cert){ toast('인증서를 선택해주세요'); return; }
+  const raw = document.getElementById('addModels').value;
+  if(addModels(cert, raw)) closeAddModal();
+}
+document.getElementById('addModal').addEventListener('click', function(e){ if(e.target===this) closeAddModal(); });
+
+// ── TOAST ──
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),2500);
+}
+
+// ── IMPORT MODAL ──
+function openImportModal(){
+  document.getElementById('importJson').value='';
+  document.getElementById('importError').style.display='none';
+  document.getElementById('importModal').classList.add('on');
+  setTimeout(()=>document.getElementById('importJson').focus(), 100);
+}
+function closeImportModal(){ document.getElementById('importModal').classList.remove('on'); }
+function doImport(){
+  const raw = document.getElementById('importJson').value.trim();
+  const errEl = document.getElementById('importError');
+  errEl.style.display='none';
+  if(!raw){ errEl.textContent='데이터를 붙여넣어주세요'; errEl.style.display='block'; return; }
+  try{
+    let data = JSON.parse(raw);
+    // 단일 항목 {cert, models} 또는 배열 또는 전체 state {q:[...]}
+    let items = [];
+    if(Array.isArray(data)) items = data;
+    else if(data.cert && data.models) items = [data];
+    else if(data.q && Array.isArray(data.q)) items = data.q;
+    else { errEl.textContent='형식 오류: {cert, models} 또는 [{cert, models}] 형태로 입력해주세요'; errEl.style.display='block'; return; }
+
+    let totalAdded = 0;
+    items.forEach(item=>{
+      if(!item.cert || !item.models) return;
+      const models = item.models.map(m=>m.trim().replace(/-KR$/i,'')).filter(Boolean);
+      const ex = S.q.find(q=>q.cert===item.cert);
+      if(ex){
+        const added = models.filter(m=>!ex.models.includes(m));
+        ex.models.push(...added); totalAdded+=added.length;
+      } else {
+        S.q.push({id:uid(), cert:item.cert, models, at:item.at||Date.now()});
+        totalAdded+=models.length;
+      }
+      openA.add(ga(item.cert));
+    });
+    save(); render(); closeImportModal();
+    toast(`✅ ${totalAdded}개 모델 추가 완료!`);
+  } catch(e){
+    errEl.textContent = 'JSON 파싱 오류: ' + e.message;
+    errEl.style.display='block';
+  }
+}
+document.getElementById('importModal').addEventListener('click', function(e){ if(e.target===this) closeImportModal(); });
+
+// ── SYNC ──
+let gistId  = localStorage.getItem('kc_gist') || '';
+let ghToken = localStorage.getItem('kc_tok')  || '';
+let syncTimer = null;
+
+function setSyncStatus(state, msg){
+  const dot = document.getElementById('syncDot');
+  const txt = document.getElementById('syncTxt');
+  const bar = document.getElementById('syncBar');
+  bar.style.display = 'flex';
+  const colors = {ok:'var(--green)', warn:'var(--yellow)', err:'var(--red)', pulse:'var(--blue)'};
+  dot.style.background = colors[state] || 'var(--tx3)';
+  dot.style.animation   = state==='pulse' ? 'pulse 1s ease-in-out infinite' : 'none';
+  txt.textContent = msg;
+}
+function setSyncTime(){
+  const t = new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('syncTime').textContent = t + ' 동기화';
+}
+
+async function syncNow(){
+  if(!ghToken){ openSyncModal(); return; }
+  const btn = document.getElementById('syncBtn');
+  btn.textContent = '↺ 동기화 중';
+  setSyncStatus('pulse', '동기화 중...');
+  try{
+    // PULL
+    if(gistId){
+      const r = await fetch(`https://api.github.com/gists/${gistId}`,
+        {headers:{'Authorization':`token ${ghToken}`,'Accept':'application/vnd.github+json'}});
+      if(r.ok){
+        const d = await r.json();
+        const raw = d.files?.['kc_v3.json']?.content;
+        if(raw){ mergeRemote(JSON.parse(raw)); }
+      }
+    }
+    // PUSH
+    await pushGist();
+    setSyncStatus('ok', '동기화 완료'); setSyncTime();
+    btn.textContent = '✓ 동기화됨';
+    setTimeout(()=>btn.textContent='↺ 동기화', 3000);
+  } catch(e){
+    setSyncStatus('err', '동기화 실패: ' + e.message);
+    btn.textContent = '↺ 동기화';
+    toast('동기화 실패: ' + e.message);
+  }
+}
+
+async function pushGist(){
+  const body = {files:{'kc_v3.json':{content: JSON.stringify(S, null, 2)}}};
+  if(!gistId){
+    body.description = 'KC 파생 신청 관리 대시보드 데이터';
+    body.public = false;
+    const r = await fetch('https://api.github.com/gists',{
+      method:'POST',
+      headers:{'Authorization':`token ${ghToken}`,'Content-Type':'application/json','Accept':'application/vnd.github+json'},
+      body: JSON.stringify(body)
+    });
+    if(!r.ok) throw new Error('Gist 생성 실패');
+    const d = await r.json();
+    gistId = d.id;
+    localStorage.setItem('kc_gist', gistId);
+    document.getElementById('syncGistId').value = gistId;
+    setSyncStatus('ok', `Gist 생성 완료 — ID: ${gistId}`);
+  } else {
+    const r = await fetch(`https://api.github.com/gists/${gistId}`,{
+      method:'PATCH',
+      headers:{'Authorization':`token ${ghToken}`,'Content-Type':'application/json','Accept':'application/vnd.github+json'},
+      body: JSON.stringify(body)
+    });
+    if(!r.ok) throw new Error('Gist 업데이트 실패');
+  }
+}
+
+function mergeRemote(remote){
+  let changed = false;
+  // queue 병합
+  const qIds = new Set(S.q.map(q=>q.id));
+  remote.q?.forEach(rq=>{
+    if(!qIds.has(rq.id)){ S.q.push(rq); changed=true; }
+    else {
+      const lq = S.q.find(q=>q.id===rq.id);
+      if(lq){
+        const before = lq.models.length;
+        lq.models = [...new Set([...lq.models, ...rq.models])];
+        if(lq.models.length !== before) changed=true;
+      }
+    }
+  });
+  // 원격에서 삭제된 항목 반영 (원격이 최신이면)
+  // history 병합
+  const hIds = new Set(S.h.map(h=>h.id));
+  remote.h?.forEach(rh=>{ if(!hIds.has(rh.id)){ S.h.push(rh); changed=true; } });
+  if(changed){ save(); render(); toast('새 데이터 동기화됨'); }
+}
+
+function startAutoSync(){
+  if(syncTimer) clearInterval(syncTimer);
+  syncTimer = setInterval(()=>{
+    if(ghToken) syncNow().catch(()=>{});
+  }, 30000);
+}
+
+function openSyncModal(){
+  document.getElementById('syncToken').value  = ghToken;
+  document.getElementById('syncGistId').value = gistId;
+  document.getElementById('syncModal').classList.add('on');
+}
+function closeSyncModal(){ document.getElementById('syncModal').classList.remove('on'); }
+async function saveSyncSettings(){
+  ghToken = document.getElementById('syncToken').value.trim();
+  gistId  = document.getElementById('syncGistId').value.trim();
+  localStorage.setItem('kc_tok',  ghToken);
+  localStorage.setItem('kc_gist', gistId);
+  closeSyncModal();
+  await syncNow();
+  startAutoSync();
+}
+document.getElementById('syncModal').addEventListener('click', function(e){ if(e.target===this) closeSyncModal(); });
+
+// save 함수 오버라이드 — 저장할 때마다 자동 push (토큰 있으면)
+const _origSave = save;
+// ── INIT ──
+load(); render();
+// 동기화 상태 초기화
+if(ghToken){
+  document.getElementById('syncBar').style.display = 'flex';
+  setSyncStatus('ok', '토큰 설정됨');
+  syncNow().catch(()=>{});
+  startAutoSync();
+}
+setInterval(render, 60000);
+</script>
+</body>
+</html>
