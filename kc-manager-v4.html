@@ -710,25 +710,23 @@ async function pushGist(){
 }
 
 function mergeRemote(remote){
-  let changed = false;
-  // queue 병합
-  const qIds = new Set(S.q.map(q=>q.id));
-  remote.q?.forEach(rq=>{
-    if(!qIds.has(rq.id)){ S.q.push(rq); changed=true; }
-    else {
-      const lq = S.q.find(q=>q.id===rq.id);
-      if(lq){
-        const before = lq.models.length;
-        lq.models = [...new Set([...lq.models, ...rq.models])];
-        if(lq.models.length !== before) changed=true;
-      }
-    }
-  });
-  // 원격에서 삭제된 항목 반영 (원격이 최신이면)
-  // history 병합
-  const hIds = new Set(S.h.map(h=>h.id));
-  remote.h?.forEach(rh=>{ if(!hIds.has(rh.id)){ S.h.push(rh); changed=true; } });
-  if(changed){ save(); render(); toast('새 데이터 동기화됨'); }
+  if(!remote) return;
+  // 원격 데이터를 기준으로 덮어쓰기 (원격이 최신 상태)
+  // 단, 로컬에만 있는 항목(오프라인 중 추가된 것)도 보존
+  const remoteQIds = new Set((remote.q||[]).map(q=>q.id));
+  const remoteHIds = new Set((remote.h||[]).map(h=>h.id));
+
+  // 원격에 없는 로컬 항목 (오프라인 추가분)
+  const localOnlyQ = S.q.filter(q=>!remoteQIds.has(q.id));
+  const localOnlyH = S.h.filter(h=>!remoteHIds.has(h.id));
+
+  // 원격 데이터 + 로컬 전용 항목 합치기
+  S.q = [...(remote.q||[]), ...localOnlyQ];
+  S.h = [...(remote.h||[]), ...localOnlyH];
+
+  localStorage.setItem('kc_v3', JSON.stringify(S));
+  render();
+  toast('✅ 동기화 완료');
 }
 
 function startAutoSync(){
