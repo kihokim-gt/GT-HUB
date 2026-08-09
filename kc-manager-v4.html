@@ -271,7 +271,8 @@ body{font-family:'Pretendard',system-ui,sans-serif;background:var(--bg);color:va
     <div class="modal-acts" style="margin-top:14px">
       <button class="btn" onclick="closeMailModal()">닫기</button>
       <button class="btn" onclick="copyMailBody()">📋 본문 복사</button>
-      <button class="btn btn-blue" onclick="requestClaudeDraft()">🤖 Claude에게 초안 요청</button>
+      <button class="btn btn-green" onclick="markSentAndClose()">✓ 발송 완료 처리</button>
+      <button class="btn btn-blue" onclick="requestClaudeDraft()">🤖 Claude 초안 요청</button>
     </div>
   </div>
 </div>
@@ -455,6 +456,9 @@ function showMailModal(agency, info, body, count){
   document.getElementById('mailEmail').textContent  = info.email||'';
   document.getElementById('mailCount').textContent  = count>1?` (${count}건)`:'';
   document.getElementById('mailBody').value = body;
+  // 완료 처리할 qid 목록 저장
+  const items = S.q.filter(q=>ga(q.cert)===agency);
+  document.getElementById('mailModal').dataset.qids = items.map(i=>i.id).join(',');
   document.getElementById('mailModal').classList.add('on');
 }
 function copyMailBody(){
@@ -790,22 +794,43 @@ function openSyncModal(){
 }
 function closeSyncModal(){ document.getElementById('syncModal').classList.remove('on'); }
 function closeMailModal(){ document.getElementById('mailModal').classList.remove('on'); }
+function markSentAndClose(){
+  // 모달에 저장된 qid들 완료 처리
+  const qids = document.getElementById('mailModal').dataset.qids || '';
+  if(qids){
+    qids.split(',').filter(Boolean).forEach(qid=>{
+      const item = S.q.find(q=>q.id===qid);
+      if(item){
+        S.h.unshift({...item, sentAt:Date.now()});
+        S.q = S.q.filter(q=>q.id!==qid);
+      }
+    });
+    save();
+    render();
+    toast('✅ 신청 완료 처리됨 — 이력 탭에서 확인하세요');
+  }
+  closeMailModal();
+}
 function requestClaudeDraft(){
   const body = document.getElementById('mailBody').value;
   const agency = document.getElementById('mailAgency').textContent;
   const email = document.getElementById('mailEmail').textContent;
-  // 클립보드에 복사 후 Claude 채팅으로 이동
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(
-      `아래 내용으로 ${agency}(${email})에게 Gmail 초안 만들어줘:\n\n${body}`
-    ).then(()=>{
-      toast('📋 요청 내용 복사됨 — Claude 채팅에 붙여넣기 하세요');
-      setTimeout(()=>window.open('https://claude.ai','_blank'), 800);
-    });
-  } else {
-    toast('Claude 채팅에서 메일 초안을 요청해주세요');
-    window.open('https://claude.ai','_blank');
+  const qids = document.getElementById('mailModal').dataset.qids || '';
+
+  // Gist에 pending + 완료할 qid 목록 저장
+  if(ghToken && gistId){
+    if(!S.pending) S.pending=[];
+    // 기존 pending 제거 후 최신 1건만 유지
+    S.pending = [{
+      agency, email, body,
+      qidsToComplete: qids.split(',').filter(Boolean),
+      requestedAt: Date.now(), status:'pending'
+    }];
+    save();
+    pushGist().catch(()=>{});
   }
+
+  toast('✅ Claude에게 요청 전송! "메일 초안 만들어줘" 라고 해주세요');
   closeMailModal();
 }
 async function saveSyncSettings(){
