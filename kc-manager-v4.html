@@ -377,7 +377,7 @@ function save(){
   localStorage.setItem('kc_v3', JSON.stringify(S));
   if(ghToken && gistId) {
     clearTimeout(window._syncDebounce);
-    window._syncDebounce = setTimeout(()=>{
+    window._syncDebounce = setTimeout(()=>{ // 3초 디바운스
       pushGist()
         .then(()=>{ setSyncStatus('ok','동기화 완료'); setSyncTime(); })
         .catch(e=>{ setSyncStatus('warn','자동 저장 실패: '+e.message); });
@@ -736,6 +736,19 @@ async function syncNow(){
   }
 }
 
+async function pullOnly(){
+  if(!ghToken || !gistId) return;
+  try{
+    const r = await fetch(`https://api.github.com/gists/${gistId}`,
+      {headers:{'Authorization':`token ${ghToken}`,'Accept':'application/vnd.github+json'}});
+    if(r.ok){
+      const d = await r.json();
+      const raw = d.files?.['kc_v3.json']?.content;
+      if(raw) mergeRemote(JSON.parse(raw));
+    }
+  } catch(e){ /* 조용히 실패 */ }
+}
+
 async function pushGist(){
   const body = {files:{'kc_v3.json':{content: JSON.stringify(S, null, 2)}}};
   if(!gistId){
@@ -785,8 +798,8 @@ function mergeRemote(remote){
 function startAutoSync(){
   if(syncTimer) clearInterval(syncTimer);
   syncTimer = setInterval(()=>{
-    if(ghToken) syncNow().catch(()=>{});
-  }, 30000);
+    if(ghToken && gistId) syncNow().catch(()=>{});
+  }, 300000); // 5분마다
 }
 
 function openSyncModal(){
