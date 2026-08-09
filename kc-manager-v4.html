@@ -250,6 +250,32 @@ body{font-family:'Pretendard',system-ui,sans-serif;background:var(--bg);color:va
   </div>
 </div>
 
+<!-- MAIL MODAL -->
+<div class="overlay" id="mailModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-ttl">✉️ 메일 초안 요청</div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--s0);border-radius:var(--r);margin-bottom:16px;border:1px solid var(--bd)">
+      <span style="font-size:20px">📨</span>
+      <div>
+        <div style="font-size:13px;font-weight:600" id="mailAgency"></div>
+        <div style="font-size:11px;color:var(--tx3);font-family:JetBrains Mono,monospace" id="mailEmail"></div>
+      </div>
+      <div style="margin-left:auto;font-size:12px;color:var(--tx2)">파생 요청<span id="mailCount"></span></div>
+    </div>
+    <div style="font-size:11px;color:var(--tx3);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">메일 본문 미리보기</div>
+    <textarea id="mailBody" rows="12" readonly style="width:100%;padding:10px 13px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--s0);color:var(--tx2);font-size:11px;font-family:JetBrains Mono,monospace;resize:none;line-height:1.8;outline:none"></textarea>
+    <div style="font-size:11px;color:var(--blue);background:var(--blue-d);border:1px solid var(--blue-b);border-radius:var(--r);padding:10px 13px;margin-top:12px;line-height:1.7">
+      💡 <strong>Gmail 초안 자동 생성:</strong> 아래 <strong>"Claude에게 초안 요청"</strong> 버튼을 클릭하면<br>
+      Claude 채팅창이 열리며 자동으로 Gmail 초안이 생성됩니다.
+    </div>
+    <div class="modal-acts" style="margin-top:14px">
+      <button class="btn" onclick="closeMailModal()">닫기</button>
+      <button class="btn" onclick="copyMailBody()">📋 본문 복사</button>
+      <button class="btn btn-blue" onclick="requestClaudeDraft()">🤖 Claude에게 초안 요청</button>
+    </div>
+  </div>
+</div>
+
 <!-- SYNC MODAL -->
 <div class="overlay" id="syncModal">
   <div class="modal">
@@ -411,8 +437,29 @@ function sendAgency(agency){
   const info = AG[agency]||{};
   const blocks = items.map(i=>`기존 인증서:\n${i.cert}\n\n단순 모델 파생:\n${i.models.join('\n')}`).join('\n\n');
   const body = `${info.sal||'담당자님'} 안녕하세요~\n\n키크론 단순모델 파생 요청드립니다.\n\n${blocks}\n\n감사합니다.\n\nKiho Kim | 김기호\nTel 070-5014-1783 | Fax 031-335-8801\nEmail kiho.kim@tbnws.com\nADD 17040 경기도 용인시 처인구 포곡읍 성산로 434, 3층\n(주)투비네트웍스글로벌 | ToBe Networks, Inc.`;
-  const subj = encodeURIComponent('키크론 단순모델 파생 요청'+(items.length>1?` (${items.length}건)`:''));
-  window.open(`mailto:${info.email||''}?cc=heewoong.shin@tbnws.com,seongmook.kang@tbnws.com&subject=${subj}&body=${encodeURIComponent(body)}`);
+
+  // Gist에 pending_mail 저장
+  if(ghToken && gistId){
+    if(!S.pending) S.pending=[];
+    S.pending.push({agency,email:info.email,sal:info.sal,
+      subject:'키크론 단순모델 파생 요청'+(items.length>1?` (${items.length}건)`:''),
+      body, certs:items.map(i=>i.cert), requestedAt:Date.now(), status:'pending'});
+    save();
+    pushGist().catch(()=>{});
+  }
+  showMailModal(agency, info, body, items.length);
+}
+
+function showMailModal(agency, info, body, count){
+  document.getElementById('mailAgency').textContent = agency;
+  document.getElementById('mailEmail').textContent  = info.email||'';
+  document.getElementById('mailCount').textContent  = count>1?` (${count}건)`:'';
+  document.getElementById('mailBody').value = body;
+  document.getElementById('mailModal').classList.add('on');
+}
+function copyMailBody(){
+  const ta=document.getElementById('mailBody'); ta.select(); document.execCommand('copy');
+  toast('📋 메일 본문 복사됨');
 }
 
 // ── RENDER ──
@@ -742,6 +789,25 @@ function openSyncModal(){
   document.getElementById('syncModal').classList.add('on');
 }
 function closeSyncModal(){ document.getElementById('syncModal').classList.remove('on'); }
+function closeMailModal(){ document.getElementById('mailModal').classList.remove('on'); }
+function requestClaudeDraft(){
+  const body = document.getElementById('mailBody').value;
+  const agency = document.getElementById('mailAgency').textContent;
+  const email = document.getElementById('mailEmail').textContent;
+  // 클립보드에 복사 후 Claude 채팅으로 이동
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(
+      `아래 내용으로 ${agency}(${email})에게 Gmail 초안 만들어줘:\n\n${body}`
+    ).then(()=>{
+      toast('📋 요청 내용 복사됨 — Claude 채팅에 붙여넣기 하세요');
+      setTimeout(()=>window.open('https://claude.ai','_blank'), 800);
+    });
+  } else {
+    toast('Claude 채팅에서 메일 초안을 요청해주세요');
+    window.open('https://claude.ai','_blank');
+  }
+  closeMailModal();
+}
 async function saveSyncSettings(){
   ghToken = document.getElementById('syncToken').value.trim();
   gistId  = document.getElementById('syncGistId').value.trim();
