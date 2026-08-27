@@ -226,7 +226,7 @@ body{font-family:'Pretendard',system-ui,sans-serif;background:var(--bg);color:va
   <div class="alert-bar" id="alertBar">
     <div class="alert-ico">🔔</div>
     <div>
-      <div class="alert-ttl">신청 기간(7일)이 지난 항목이 있습니다!</div>
+      <div class="alert-ttl">신청 기간(5일)이 지난 항목이 있습니다!</div>
       <div class="alert-txt" id="alertTxt"></div>
     </div>
   </div>
@@ -368,7 +368,7 @@ const CM = {
   'R-R-TB8-K4RGBLED':'나이스인증원','R-R-TB8-Q8RGBLED':'나이스인증원','R-R-TB8-Q1RGBLED':'나이스인증원'
 };
 function ga(cert){ return CM[cert] || (/R-R-TB8-Q/i.test(cert)?'나이스인증원':'튜풀테크놀러지'); }
-function dl(ts){ return 7-Math.floor((Date.now()-ts)/86400000); }
+function dl(ts){ return 5-Math.floor((Date.now()-ts)/86400000); }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
 
 // ── STATE ──
