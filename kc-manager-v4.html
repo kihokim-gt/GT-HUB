@@ -425,7 +425,15 @@ function markSent(qid){
   const item = S.q.find(q=>q.id===qid); if(!item) return;
   S.h.unshift({...item, sentAt:Date.now()});
   S.q = S.q.filter(q=>q.id!==qid);
-  save(); render(); toast('신청 완료 처리됨 ✓');
+  localStorage.setItem('kc_v3', JSON.stringify(S));
+  render();
+  toast('신청 완료 처리됨 ✓ — Gist 동기화 중...');
+  // 즉시 push (디바운스 없이)
+  if(ghToken && gistId){
+    pushGist()
+      .then(()=>{ setSyncStatus('ok','동기화 완료'); setSyncTime(); toast('✅ 신청 완료 & Gist 동기화됨'); })
+      .catch(e=>{ setSyncStatus('warn','Gist 저장 실패 — ↺ 동기화 버튼 눌러주세요'); toast('⚠️ Gist 동기화 실패'); });
+  }
 }
 function undoSent(hid){
   const item = S.h.find(h=>h.id===hid); if(!item) return;
@@ -436,7 +444,13 @@ function undoSent(hid){
 function delItem(qid){
   if(!confirm('이 항목을 삭제하시겠습니까?')) return;
   S.q = S.q.filter(q=>q.id!==qid);
-  save(); render(); toast('항목 삭제됨');
+  localStorage.setItem('kc_v3', JSON.stringify(S));
+  render(); toast('항목 삭제됨');
+  if(ghToken && gistId){
+    pushGist()
+      .then(()=>{ setSyncStatus('ok','동기화 완료'); setSyncTime(); })
+      .catch(()=>{ setSyncStatus('warn','Gist 저장 실패 — ↺ 동기화 버튼 눌러주세요'); });
+  }
 }
 function sendAgency(agency){
   const items = S.q.filter(q=>ga(q.cert)===agency);
